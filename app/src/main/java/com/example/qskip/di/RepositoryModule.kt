@@ -1,8 +1,10 @@
 package com.example.qskip.di
 
 import com.example.qskip.data.repository.AuthRepositoryImpl
+import com.example.qskip.data.repository.CartRepositoryImpl
 import com.example.qskip.data.repository.ProductRepositoryImpl
 import com.example.qskip.domain.repository.AuthRepository
+import com.example.qskip.domain.repository.CartRepository
 import com.example.qskip.domain.repository.ProductRepository
 import dagger.Binds
 import dagger.Module
@@ -25,4 +27,10 @@ abstract class RepositoryModule {
     abstract fun bindProductRepository(
         productRepositoryImpl: ProductRepositoryImpl
     ): ProductRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindCartRepository(
+        cartRepositoryImpl: CartRepositoryImpl
+    ): CartRepository
 }
