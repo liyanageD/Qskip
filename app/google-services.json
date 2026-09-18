@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "200437739229",
+    "project_id": "qskip-ae2bb",
+    "storage_bucket": "qskip-ae2bb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:200437739229:android:bea5856a17fc24652d7534",
+        "android_client_info": {
+          "package_name": "com.example.qskip"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEoKCQC_DIVJ8HKW82iGQDC7Uw7mC6fgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
