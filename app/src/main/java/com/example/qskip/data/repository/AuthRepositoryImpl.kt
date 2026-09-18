@@ -25,7 +25,13 @@ class AuthRepositoryImpl @Inject constructor(
             auth.signInWithEmailAndPassword(email, password).await()
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            val message = e.localizedMessage ?: "Login failed"
+            val error = if (message.contains("Configuration not found", ignoreCase = true)) {
+                "Firebase Auth is not enabled in Firebase Console for 'qskip-ae2bb'. Please enable Email/Password provider under Authentication -> Sign-in method."
+            } else {
+                message
+            }
+            Result.failure(Exception(error))
         }
     }
 
@@ -50,7 +56,13 @@ class AuthRepositoryImpl @Inject constructor(
             }
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            val message = e.localizedMessage ?: "Registration failed"
+            val error = if (message.contains("Configuration not found", ignoreCase = true)) {
+                "Firebase Auth is not enabled in Firebase Console for 'qskip-ae2bb'. Please enable Email/Password provider under Authentication -> Sign-in method."
+            } else {
+                message
+            }
+            Result.failure(Exception(error))
         }
     }
 
