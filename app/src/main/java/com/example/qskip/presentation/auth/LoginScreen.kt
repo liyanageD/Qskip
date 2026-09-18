@@ -2,8 +2,10 @@ package com.example.qskip.presentation.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,16 +49,21 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .imePadding()
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
+        Spacer(modifier = Modifier.height(24.dp))
+
         Image(
             painter = painterResource(id = R.drawable.app_banner),
             contentDescription = "Qskip Logo",
             modifier = Modifier
-                .height(64.dp)
-                .fillMaxWidth(0.75f),
+                .height(56.dp)
+                .fillMaxWidth(0.7f),
             contentScale = ContentScale.Fit
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -66,7 +73,7 @@ fun LoginScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
             value = uiState.email,
@@ -85,7 +92,7 @@ fun LoginScreen(
             singleLine = true
         )
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = uiState.password,
@@ -108,7 +115,7 @@ fun LoginScreen(
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         if (uiState.error != null) {
             Text(
@@ -145,5 +152,7 @@ fun LoginScreen(
         TextButton(onClick = onNavigateToAdminLogin) {
             Text("Admin Portal", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }

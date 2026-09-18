@@ -2,8 +2,10 @@ package com.example.qskip.presentation.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -63,20 +65,24 @@ fun AdminLoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(24.dp),
+                .imePadding()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
+            Spacer(modifier = Modifier.height(12.dp))
+
             Image(
                 painter = painterResource(id = R.drawable.app_banner),
                 contentDescription = "Qskip Logo",
                 modifier = Modifier
-                    .height(56.dp)
-                    .fillMaxWidth(0.65f),
+                    .height(48.dp)
+                    .fillMaxWidth(0.6f),
                 contentScale = ContentScale.Fit
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "Staff & Admin Portal",
@@ -85,7 +91,7 @@ fun AdminLoginScreen(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = "Sign in with an authorized staff or administrator account",
@@ -94,7 +100,7 @@ fun AdminLoginScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             OutlinedTextField(
                 value = uiState.email,
@@ -113,7 +119,7 @@ fun AdminLoginScreen(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = uiState.password,
@@ -136,19 +142,19 @@ fun AdminLoginScreen(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             if (uiState.error != null) {
                 Surface(
                     color = MaterialTheme.colorScheme.errorContainer,
                     shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
                 ) {
                     Text(
                         text = uiState.error!!,
                         color = MaterialTheme.colorScheme.onErrorContainer,
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(12.dp),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -168,6 +174,8 @@ fun AdminLoginScreen(
                     Text("Login to Admin Portal")
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
