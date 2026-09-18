@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.qskip.presentation.scanner.CameraPermissionWrapper
 import com.example.qskip.presentation.scanner.CameraPreview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,10 +43,12 @@ fun AdminExitScannerScreen(
                 .padding(innerPadding)
         ) {
             if (order == null) {
-                // Show Camera preview to scan exit token
-                CameraPreview(
-                    onQrCodeScanned = viewModel::onExitQrScanned
-                )
+                // Show Camera preview with permission wrapper to scan exit token
+                CameraPermissionWrapper {
+                    CameraPreview(
+                        onQrCodeScanned = viewModel::onExitQrScanned
+                    )
+                }
 
                 if (uiState.isLoading) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

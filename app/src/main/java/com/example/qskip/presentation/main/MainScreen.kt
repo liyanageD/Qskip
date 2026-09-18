@@ -1,6 +1,7 @@
 package com.example.qskip.presentation.main
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,6 +47,7 @@ fun MainScreen(
             val showBottomBar = currentRoute in bottomBarRoutes
 
             Scaffold(
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 bottomBar = {
                     if (showBottomBar) {
                         BottomNavBar(navController = navController)

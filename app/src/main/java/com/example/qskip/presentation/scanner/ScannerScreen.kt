@@ -1,8 +1,11 @@
 package com.example.qskip.presentation.scanner
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.util.Log
 import android.view.ViewGroup
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
@@ -12,6 +15,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -38,7 +43,6 @@ fun ScannerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Handle successful scan
     LaunchedEffect(uiState.scannedProductCode) {
         uiState.scannedProductCode?.let {
             onProductScanned(it)
@@ -63,16 +67,10 @@ fun ScannerScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            CameraPreview(
-                onQrCodeScanned = viewModel::onQrCodeScanned
-            )
-            
-            // Scanner overlay guidelines
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                // A simple placeholder for a targeting box could go here.
+            CameraPermissionWrapper {
+                CameraPreview(
+                    onQrCodeScanned = viewModel::onQrCodeScanned
+                )
             }
 
             Column(
@@ -132,6 +130,75 @@ fun ScannerScreen(
                         }
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun CameraPermissionWrapper(
+    content: @Composable () -> Unit
+) {
+    val context = LocalContext.current
+    var hasPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasPermission = isGranted
+    }
+
+    LaunchedEffect(Unit) {
+        if (!hasPermission) {
+            launcher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    if (hasPermission) {
+        content()
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Camera Permission Required",
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Camera Permission Required",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Qskip requires access to your device camera to scan QR codes.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = { launcher.launch(Manifest.permission.CAMERA) }
+                ) {
+                    Text("Grant Camera Permission")
+                }
             }
         }
     }

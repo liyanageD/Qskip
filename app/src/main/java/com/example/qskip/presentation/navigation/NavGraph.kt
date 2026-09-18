@@ -62,7 +62,11 @@ fun QskipNavGraph(
         composable(route = Screen.AdminLogin.route) {
             AdminLoginScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.AdminLogin.route) { inclusive = true }
+                        }
+                    }
                 },
                 onAdminLoginSuccess = {
                     navController.navigate(Screen.AdminDashboard.route) {
@@ -264,12 +268,16 @@ fun QskipNavGraph(
                     navController.navigate(Screen.AdminRewards.route)
                 },
                 onAdminLogout = {
-                    navController.navigate(Screen.AdminLogin.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
                 onNavigateBack = {
-                    navController.popBackStack()
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.AdminDashboard.route) { inclusive = true }
+                        }
+                    }
                 }
             )
         }
