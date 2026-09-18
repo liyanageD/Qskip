@@ -25,6 +25,7 @@ fun ExitQrScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val order = uiState.order
+    val bitmap = uiState.qrBitmap
 
     Scaffold(
         topBar = {
@@ -48,14 +49,7 @@ fun ExitQrScreen(
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator()
-            } else if (uiState.error != null) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
-            } else if (order != null && uiState.qrBitmap != null) {
+            } else if (order != null && bitmap != null) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
@@ -80,7 +74,7 @@ fun ExitQrScreen(
                         Spacer(modifier = Modifier.height(24.dp))
 
                         Image(
-                            bitmap = uiState.qrBitmap!!.asImageBitmap(),
+                            bitmap = bitmap.asImageBitmap(),
                             contentDescription = "Exit QR Code",
                             modifier = Modifier.size(240.dp)
                         )
@@ -115,6 +109,20 @@ fun ExitQrScreen(
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            } else {
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = uiState.error ?: "Exit QR is not available for this order.",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
         }
     }
