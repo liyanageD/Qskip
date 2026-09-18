@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qskip.data.repository.DataSeeder
 import com.example.qskip.domain.model.Order
+import com.example.qskip.domain.repository.AuthRepository
 import com.example.qskip.domain.repository.OrderRepository
 import com.example.qskip.domain.repository.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +28,7 @@ data class AdminDashboardUiState(
 class AdminDashboardViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
     private val productRepository: ProductRepository,
+    private val authRepository: AuthRepository,
     private val dataSeeder: DataSeeder
 ) : ViewModel() {
 
@@ -42,22 +44,14 @@ class AdminDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             orderRepository.getAllOrders().collect { orders ->
                 val todayStart = System.currentTimeMillis() - (1000 * 60 * 60 * 24)
-                val todayOrders = orders.filter { it.createdAt >= todayStart && it.paymentStatus == "MOCK_SUCCESS" }
+                val todayOrders = orders.filter { it.createdAt >= todayStart && (it.paymentStatus == "MOCK_SUCCESS" || it.paymentStatus == "SUCCESS") }
                 val sales = todayOrders.sumOf { it.total }
                 val pendingExits = orders.count { it.exitStatus == "READY" }
 
-                // Fetch low stock items count
                 val productsResult = productRepository.getProducts()
-                var lowStockTotal = 0
-                if (productsResult.isSuccess) {
-                    val products = productsResult.getOrDefault(emptyList())
-                    for (p in products) {
-                        val variantsResult = productRepository.getProductVariants(p.productId)
-                        if (variantsResult.isSuccess) {
-                            lowStockTotal += variantsResult.getOrDefault(emptyList()).count { it.stock <= it.lowStockThreshold }
-                        }
-                    }
-                }
+                val lowStockTotal = if (productsResult.isSuccess) {
+                    productsResult.getOrDefault(emptyList()).count { it.stockQuantity <= it.lowStockThreshold }
+                } else 0
 
                 _uiState.value = _uiState.value.copy(
                     todaySales = sales,
@@ -83,6 +77,12 @@ class AdminDashboardViewModel @Inject constructor(
                     error = result.exceptionOrNull()?.message ?: "Failed to seed data"
                 )
             }
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            authRepository.logout()
         }
     }
 }

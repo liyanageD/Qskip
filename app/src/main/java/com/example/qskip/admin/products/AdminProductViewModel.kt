@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qskip.domain.model.Product
-import com.example.qskip.domain.model.ProductVariant
 import com.example.qskip.domain.repository.ImageStorageRepository
 import com.example.qskip.domain.repository.ProductRepository
 import com.example.qskip.utils.QrGeneratorUtil
@@ -17,8 +16,11 @@ import javax.inject.Inject
 
 data class AdminProductUiState(
     val products: List<Product> = emptyList(),
+    val editingProduct: Product? = null,
+    val searchQuery: String = "",
     val isLoading: Boolean = false,
     val isSaveSuccess: Boolean = false,
+    val successMessage: String? = null,
     val error: String? = null,
     val generatedQrBitmap: Bitmap? = null
 )
@@ -54,17 +56,49 @@ class AdminProductViewModel @Inject constructor(
         }
     }
 
+    fun loadProductForEdit(productId: String) {
+        if (productId.isBlank()) {
+            _uiState.value = _uiState.value.copy(editingProduct = null)
+            return
+        }
+        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+        viewModelScope.launch {
+            val result = productRepository.getProductById(productId)
+            if (result.isSuccess) {
+                _uiState.value = _uiState.value.copy(
+                    editingProduct = result.getOrNull(),
+                    isLoading = false
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = result.exceptionOrNull()?.message ?: "Failed to load product details"
+                )
+            }
+        }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+    }
+
     fun saveProductWithImage(
+        productId: String = "",
         name: String,
         productCode: String,
         description: String,
-        basePrice: Double,
+        category: String,
+        size: String,
+        color: String,
+        price: Double,
+        stockQuantity: Int,
         imageBytes: ByteArray?,
-        variants: List<ProductVariant>
+        existingImageUrls: List<String>,
+        active: Boolean
     ) {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            var imageUrls = emptyList<String>()
+            var imageUrls = existingImageUrls
 
             if (imageBytes != null) {
                 val fileName = "prod_${System.currentTimeMillis()}.jpg"
@@ -81,22 +115,51 @@ class AdminProductViewModel @Inject constructor(
             }
 
             val product = Product(
+                productId = productId,
                 productCode = productCode,
                 name = name,
                 description = description,
-                basePrice = basePrice,
+                categoryId = category,
+                size = size,
+                color = color,
+                price = price,
+                stockQuantity = stockQuantity,
                 imageUrls = imageUrls,
-                active = true
+                active = active
             )
 
-            val saveResult = productRepository.saveProduct(product, variants)
+            val saveResult = productRepository.saveProduct(product)
             if (saveResult.isSuccess) {
-                _uiState.value = _uiState.value.copy(isLoading = false, isSaveSuccess = true)
+                val msg = if (productId.isBlank()) "Product created successfully" else "Product updated successfully"
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    isSaveSuccess = true,
+                    successMessage = msg
+                )
                 loadProducts()
             } else {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = saveResult.exceptionOrNull()?.message ?: "Failed to save product"
+                )
+            }
+        }
+    }
+
+    fun deleteProduct(productId: String) {
+        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+        viewModelScope.launch {
+            val result = productRepository.deleteProduct(productId)
+            if (result.isSuccess) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    successMessage = "Product deactivated successfully"
+                )
+                loadProducts()
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = result.exceptionOrNull()?.message ?: "Failed to delete product"
                 )
             }
         }
@@ -108,6 +171,6 @@ class AdminProductViewModel @Inject constructor(
     }
 
     fun resetSaveState() {
-        _uiState.value = _uiState.value.copy(isSaveSuccess = false, error = null)
+        _uiState.value = _uiState.value.copy(isSaveSuccess = false, successMessage = null, error = null)
     }
 }

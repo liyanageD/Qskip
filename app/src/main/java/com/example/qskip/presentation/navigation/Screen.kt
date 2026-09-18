@@ -21,4 +21,10 @@ sealed class Screen(val route: String) {
     object AdminExitScanner : Screen("admin_exit_scanner")
     object AdminProductList : Screen("admin_product_list")
     object AdminAddProduct : Screen("admin_add_product")
+    object AdminInventory : Screen("admin_inventory")
+    object AdminOrders : Screen("admin_orders")
+    object AdminCustomers : Screen("admin_customers")
+    object AdminPromotions : Screen("admin_promotions")
+    object AdminReviews : Screen("admin_reviews")
+    object AdminRewards : Screen("admin_rewards")
 }

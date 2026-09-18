@@ -43,18 +43,18 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    fun updateQuantity(productId: String, variantId: String, quantity: Int) {
+    fun updateQuantity(productId: String, quantity: Int) {
         viewModelScope.launch {
-            val result = cartRepository.updateQuantity(productId, variantId, quantity)
+            val result = cartRepository.updateQuantity(productId, quantity)
             if (result.isFailure) {
                 _uiState.value = _uiState.value.copy(error = result.exceptionOrNull()?.message ?: "Failed to update quantity")
             }
         }
     }
 
-    fun removeItem(productId: String, variantId: String) {
+    fun removeItem(productId: String) {
         viewModelScope.launch {
-            val result = cartRepository.removeFromCart(productId, variantId)
+            val result = cartRepository.removeFromCart(productId)
             if (result.isFailure) {
                 _uiState.value = _uiState.value.copy(error = result.exceptionOrNull()?.message ?: "Failed to remove item")
             }

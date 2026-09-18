@@ -1,8 +1,6 @@
 package com.example.qskip.data.repository
 
 import com.example.qskip.domain.model.Product
-import com.example.qskip.domain.model.ProductVariant
-import com.example.qskip.domain.model.ProductWithVariants
 import com.example.qskip.domain.repository.ProductRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -20,35 +18,34 @@ class ProductRepositoryImpl @Inject constructor(
                 .whereEqualTo("active", true)
                 .get()
                 .await()
-            val products = snapshot.toObjects(Product::class.java)
+            val products = snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Product::class.java)?.let { p ->
+                    if (p.productId.isBlank()) p.copy(productId = doc.id) else p
+                }
+            }
             Result.success(products)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun getProductById(productId: String): Result<ProductWithVariants> {
+    override suspend fun getProductById(productId: String): Result<Product> {
         return try {
             val productSnapshot = firestore.collection("products").document(productId).get().await()
             if (!productSnapshot.exists()) {
                 return Result.failure(Exception("Product not found"))
             }
-            val product = productSnapshot.toObject(Product::class.java) ?: return Result.failure(Exception("Failed to parse product"))
+            val product = productSnapshot.toObject(Product::class.java)?.let { p ->
+                if (p.productId.isBlank()) p.copy(productId = productSnapshot.id) else p
+            } ?: return Result.failure(Exception("Failed to parse product"))
             
-            val variantsSnapshot = firestore.collection("products").document(productId)
-                .collection("variants")
-                .whereEqualTo("active", true)
-                .get()
-                .await()
-            val variants = variantsSnapshot.toObjects(ProductVariant::class.java)
-            
-            Result.success(ProductWithVariants(product, variants))
+            Result.success(product)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun getProductByCode(productCode: String): Result<ProductWithVariants> {
+    override suspend fun getProductByCode(productCode: String): Result<Product> {
         return try {
             val snapshot = firestore.collection("products")
                 .whereEqualTo("productCode", productCode)
@@ -61,38 +58,17 @@ class ProductRepositoryImpl @Inject constructor(
             }
             
             val document = snapshot.documents.first()
-            val product = document.toObject(Product::class.java) ?: return Result.failure(Exception("Failed to parse product"))
+            val product = document.toObject(Product::class.java)?.let { p ->
+                if (p.productId.isBlank()) p.copy(productId = document.id) else p
+            } ?: return Result.failure(Exception("Failed to parse product"))
             
-            val variantsSnapshot = document.reference
-                .collection("variants")
-                .whereEqualTo("active", true)
-                .get()
-                .await()
-            val variants = variantsSnapshot.toObjects(ProductVariant::class.java)
-            
-            Result.success(ProductWithVariants(product, variants))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun getProductVariants(productId: String): Result<List<ProductVariant>> {
-        return try {
-            val snapshot = firestore.collection("products").document(productId)
-                .collection("variants")
-                .whereEqualTo("active", true)
-                .get()
-                .await()
-            val variants = snapshot.toObjects(ProductVariant::class.java)
-            Result.success(variants)
+            Result.success(product)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     override suspend fun searchProducts(query: String): Result<List<Product>> {
-        // Basic prefix search using Firestore. 
-        // For production, Algolia, Typesense, or Firebase Extensions (Elastic) is recommended.
         return try {
             val snapshot = firestore.collection("products")
                 .whereEqualTo("active", true)
@@ -100,7 +76,11 @@ class ProductRepositoryImpl @Inject constructor(
                 .whereLessThanOrEqualTo("name", query + "\uf8ff")
                 .get()
                 .await()
-            val products = snapshot.toObjects(Product::class.java)
+            val products = snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Product::class.java)?.let { p ->
+                    if (p.productId.isBlank()) p.copy(productId = doc.id) else p
+                }
+            }
             Result.success(products)
         } catch (e: Exception) {
             Result.failure(e)
@@ -108,22 +88,24 @@ class ProductRepositoryImpl @Inject constructor(
     }
     
     override suspend fun getRecommendedProducts(): Result<List<Product>> {
-        // Simplified recommendation: return the newest active products
         return try {
             val snapshot = firestore.collection("products")
                 .whereEqualTo("active", true)
-                // .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING) // Requires Index
-                .limit(5)
+                .limit(10)
                 .get()
                 .await()
-            val products = snapshot.toObjects(Product::class.java)
+            val products = snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Product::class.java)?.let { p ->
+                    if (p.productId.isBlank()) p.copy(productId = doc.id) else p
+                }
+            }
             Result.success(products)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun saveProduct(product: Product, variants: List<ProductVariant>): Result<Unit> {
+    override suspend fun saveProduct(product: Product): Result<Unit> {
         return try {
             val productId = if (product.productId.isBlank()) {
                 firestore.collection("products").document().id
@@ -137,36 +119,17 @@ class ProductRepositoryImpl @Inject constructor(
                 createdAt = if (product.createdAt == 0L) System.currentTimeMillis() else product.createdAt
             )
 
-            val batch = firestore.batch()
-            val productRef = firestore.collection("products").document(productId)
-            batch.set(productRef, updatedProduct)
-
-            variants.forEach { variant ->
-                val variantId = if (variant.variantId.isBlank()) {
-                    productRef.collection("variants").document().id
-                } else {
-                    variant.variantId
-                }
-                val updatedVariant = variant.copy(
-                    variantId = variantId,
-                    productId = productId
-                )
-                val variantRef = productRef.collection("variants").document(variantId)
-                batch.set(variantRef, updatedVariant)
-            }
-
-            batch.commit().await()
+            firestore.collection("products").document(productId).set(updatedProduct).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun updateVariantStock(productId: String, variantId: String, newStock: Int): Result<Unit> {
+    override suspend fun updateStock(productId: String, newStock: Int): Result<Unit> {
         return try {
             firestore.collection("products").document(productId)
-                .collection("variants").document(variantId)
-                .update("stock", newStock)
+                .update("stockQuantity", newStock)
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -176,7 +139,6 @@ class ProductRepositoryImpl @Inject constructor(
 
     override suspend fun deleteProduct(productId: String): Result<Unit> {
         return try {
-            // Soft delete by setting active = false
             firestore.collection("products").document(productId)
                 .update("active", false)
                 .await()

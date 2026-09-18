@@ -57,7 +57,7 @@ class ScannerViewModel @Inject constructor(
             val result = productRepository.getProductByCode(code)
             if (result.isSuccess) {
                 // If it exists, pass the actual ID back to the UI to navigate
-                val product = result.getOrNull()?.product
+                val product = result.getOrNull()
                 if (product != null) {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,

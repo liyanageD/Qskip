@@ -3,8 +3,7 @@ package com.example.qskip.presentation.product
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.qskip.domain.model.ProductVariant
-import com.example.qskip.domain.model.ProductWithVariants
+import com.example.qskip.domain.model.Product
 import com.example.qskip.domain.repository.CartRepository
 import com.example.qskip.domain.repository.ProductRepository
 import com.example.qskip.domain.repository.WishlistRepository
@@ -16,8 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ProductUiState(
-    val productData: ProductWithVariants? = null,
-    val selectedVariant: ProductVariant? = null,
+    val product: Product? = null,
     val selectedQuantity: Int = 1,
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -51,8 +49,7 @@ class ProductViewModel @Inject constructor(
             if (result.isSuccess) {
                 val data = result.getOrNull()
                 _uiState.value = _uiState.value.copy(
-                    productData = data,
-                    selectedVariant = data?.variants?.firstOrNull(), // Auto-select first variant
+                    product = data,
                     isInWishlist = wishlistResult.getOrDefault(false),
                     isLoading = false
                 )
@@ -65,27 +62,20 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    fun selectVariant(variant: ProductVariant) {
-        _uiState.value = _uiState.value.copy(
-            selectedVariant = variant,
-            selectedQuantity = 1 // Reset quantity when variant changes
-        )
-    }
-
     fun updateQuantity(quantity: Int) {
-        val variant = _uiState.value.selectedVariant
-        if (variant != null && quantity in 1..variant.stock) {
+        val product = _uiState.value.product
+        if (product != null && quantity in 1..product.stockQuantity) {
             _uiState.value = _uiState.value.copy(selectedQuantity = quantity)
         }
     }
 
     fun addToCart() {
-        val variant = _uiState.value.selectedVariant ?: return
+        val product = _uiState.value.product ?: return
         val quantity = _uiState.value.selectedQuantity
         
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            val result = cartRepository.addToCart(productId, variant.variantId, quantity)
+            val result = cartRepository.addToCart(product.productId, quantity)
             if (result.isSuccess) {
                 _uiState.value = _uiState.value.copy(isLoading = false, addToCartSuccess = true)
             } else {
@@ -114,7 +104,6 @@ class ProductViewModel @Inject constructor(
             }
 
             if (result.isFailure) {
-                // Revert on failure
                 _uiState.value = _uiState.value.copy(
                     isInWishlist = currentStatus,
                     error = result.exceptionOrNull()?.message ?: "Failed to update wishlist"

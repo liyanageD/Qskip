@@ -1,12 +1,12 @@
 package com.example.qskip.domain.model
 
 data class CartItem(
-    val productId: String,
-    val variantId: String,
-    val name: String,
-    val size: String,
-    val color: String,
-    val unitPrice: Double,
+    val productId: String = "",
+    val productCode: String = "",
+    val name: String = "",
+    val size: String = "",
+    val color: String = "",
+    val unitPrice: Double = 0.0,
     val discount: Double = 0.0,
     val quantity: Int = 1,
     val imageUrl: String? = null
@@ -18,17 +18,17 @@ data class CartItem(
 data class Cart(
     val userId: String = "",
     val items: List<CartItem> = emptyList(),
-    val budget: Double = 0.0, // Move to user document realistically, but helpful here for calculation
+    val budget: Double = 0.0,
     val rewardPointsToUse: Int = 0
 ) {
     val subtotal: Double
         get() = items.sumOf { it.subtotal }
         
     val discountTotal: Double
-        get() = 0.0 // To be implemented later (e.g. coupon logic)
+        get() = 0.0
         
     val rewardsDiscount: Double
-        get() = rewardPointsToUse * 0.5 // E.g., 1 point = 0.5 Rs
+        get() = rewardPointsToUse * 0.5
         
     val total: Double
         get() = maxOf(0.0, subtotal - discountTotal - rewardsDiscount)

@@ -186,12 +186,12 @@ fun CartScreen(
                     }
                 }
                 
-                items(cart.items, key = { it.productId + it.variantId }) { item ->
+                items(cart.items, key = { it.productId }) { item ->
                     CartItemCard(
                         item = item,
-                        onIncrease = { viewModel.updateQuantity(item.productId, item.variantId, item.quantity + 1) },
-                        onDecrease = { viewModel.updateQuantity(item.productId, item.variantId, item.quantity - 1) },
-                        onRemove = { viewModel.removeItem(item.productId, item.variantId) }
+                        onIncrease = { viewModel.updateQuantity(item.productId, item.quantity + 1) },
+                        onDecrease = { viewModel.updateQuantity(item.productId, item.quantity - 1) },
+                        onRemove = { viewModel.removeItem(item.productId) }
                     )
                 }
             }

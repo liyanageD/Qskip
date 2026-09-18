@@ -2,20 +2,22 @@ package com.example.qskip.admin.dashboard
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,10 +29,17 @@ fun AdminDashboardScreen(
     onNavigateToExitScanner: () -> Unit,
     onNavigateToProducts: () -> Unit,
     onNavigateToInventory: () -> Unit,
+    onNavigateToOrders: () -> Unit,
+    onNavigateToCustomers: () -> Unit,
+    onNavigateToPromotions: () -> Unit,
+    onNavigateToReviews: () -> Unit,
+    onNavigateToRewards: () -> Unit,
+    onAdminLogout: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: AdminDashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -45,6 +54,9 @@ fun AdminDashboardScreen(
                     TextButton(onClick = { viewModel.seedData() }) {
                         Text("Seed Data", fontWeight = FontWeight.Bold)
                     }
+                    IconButton(onClick = { showLogoutDialog = true }) {
+                        Icon(Icons.Default.ExitToApp, contentDescription = "Admin Logout", tint = MaterialTheme.colorScheme.error)
+                    }
                 }
             )
         }
@@ -54,6 +66,7 @@ fun AdminDashboardScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             // Main Action: SCAN EXIT QR
             Button(
@@ -111,45 +124,75 @@ fun AdminDashboardScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Navigation Actions
-            Text("Management", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            // Navigation Grid Actions
+            Text("Store Management", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Grid Row 1: Products & Inventory
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedCard(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onNavigateToProducts() },
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = "Products", modifier = Modifier.size(32.dp))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Products", fontWeight = FontWeight.Bold)
-                    }
-                }
+                AdminNavCard(
+                    title = "Products Catalog",
+                    icon = Icons.Default.ShoppingCart,
+                    onClick = onNavigateToProducts,
+                    modifier = Modifier.weight(1f)
+                )
+                AdminNavCard(
+                    title = "Stock Inventory",
+                    icon = Icons.Default.List,
+                    onClick = onNavigateToInventory,
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
-                OutlinedCard(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onNavigateToInventory() },
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(Icons.Default.List, contentDescription = "Inventory", modifier = Modifier.size(32.dp))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Inventory", fontWeight = FontWeight.Bold)
-                    }
-                }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Grid Row 2: Orders & Customers
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AdminNavCard(
+                    title = "Orders List",
+                    icon = Icons.Default.List,
+                    onClick = onNavigateToOrders,
+                    modifier = Modifier.weight(1f)
+                )
+                AdminNavCard(
+                    title = "Customers",
+                    icon = Icons.Default.Person,
+                    onClick = onNavigateToCustomers,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Grid Row 3: Promotions, Reviews, Rewards
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AdminNavCard(
+                    title = "Promotions",
+                    icon = Icons.Default.Star,
+                    onClick = onNavigateToPromotions,
+                    modifier = Modifier.weight(1f)
+                )
+                AdminNavCard(
+                    title = "Reviews",
+                    icon = Icons.Default.Star,
+                    onClick = onNavigateToReviews,
+                    modifier = Modifier.weight(1f)
+                )
+                AdminNavCard(
+                    title = "Rewards",
+                    icon = Icons.Default.Star,
+                    onClick = onNavigateToRewards,
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -163,14 +206,59 @@ fun AdminDashboardScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(uiState.recentOrders) { order ->
-                        RecentOrderRow(order = order)
-                    }
+                uiState.recentOrders.forEach { order ->
+                    RecentOrderRow(order = order)
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
+        }
+
+        // Admin Logout Dialog
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Logout") },
+                text = { Text("Are you sure you want to logout from the Admin Portal?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showLogoutDialog = false
+                            viewModel.logout()
+                            onAdminLogout()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Logout")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun AdminNavCard(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedCard(
+        modifier = modifier.clickable { onClick() },
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, contentDescription = title, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.example.qskip.data.repository
 
 import com.example.qskip.domain.model.Product
-import com.example.qskip.domain.model.ProductVariant
 import com.example.qskip.domain.repository.ProductRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -13,70 +12,76 @@ class DataSeeder @Inject constructor(
     suspend fun seedSampleProducts(): Result<Unit> {
         return try {
             val sampleProducts = listOf(
-                Pair(
-                    Product(
-                        productCode = "QSK-TSHIRT-001",
-                        name = "Classic T-Shirt",
-                        description = "100% Cotton soft crewneck t-shirt. Ideal for casual everyday wear.",
-                        basePrice = 2500.0,
-                        active = true
-                    ),
-                    listOf(
-                        ProductVariant(size = "S", color = "Black", price = 2500.0, stock = 10),
-                        ProductVariant(size = "M", color = "Black", price = 2500.0, stock = 5),
-                        ProductVariant(size = "L", color = "Black", price = 2500.0, stock = 8),
-                        ProductVariant(size = "S", color = "White", price = 2500.0, stock = 4),
-                        ProductVariant(size = "M", color = "White", price = 2500.0, stock = 7),
-                        ProductVariant(size = "L", color = "White", price = 2500.0, stock = 3)
-                    )
+                Product(
+                    productCode = "TSHIRT-BLK-M",
+                    name = "Classic T-Shirt",
+                    description = "100% Cotton soft crewneck t-shirt. Ideal for casual everyday wear.",
+                    categoryId = "T-Shirts",
+                    size = "M",
+                    color = "Black",
+                    price = 3500.0,
+                    stockQuantity = 10,
+                    active = true
                 ),
-                Pair(
-                    Product(
-                        productCode = "QSK-JEANS-002",
-                        name = "Slim Fit Jeans",
-                        description = "Premium denim slim fit jeans with modern stretch comfort.",
-                        basePrice = 5500.0,
-                        active = true
-                    ),
-                    listOf(
-                        ProductVariant(size = "30", color = "Blue", price = 5500.0, stock = 6),
-                        ProductVariant(size = "32", color = "Blue", price = 5500.0, stock = 12),
-                        ProductVariant(size = "34", color = "Blue", price = 5500.0, stock = 4),
-                        ProductVariant(size = "32", color = "Dark Wash", price = 5500.0, stock = 8)
-                    )
+                Product(
+                    productCode = "TSHIRT-BLK-L",
+                    name = "Classic T-Shirt",
+                    description = "100% Cotton soft crewneck t-shirt. Ideal for casual everyday wear.",
+                    categoryId = "T-Shirts",
+                    size = "L",
+                    color = "Black",
+                    price = 3500.0,
+                    stockQuantity = 7,
+                    active = true
                 ),
-                Pair(
-                    Product(
-                        productCode = "QSK-SHIRT-003",
-                        name = "Casual Button-Down Shirt",
-                        description = "Breathable linen blend casual button-down shirt.",
-                        basePrice = 3500.0,
-                        active = true
-                    ),
-                    listOf(
-                        ProductVariant(size = "M", color = "Navy", price = 3500.0, stock = 9),
-                        ProductVariant(size = "L", color = "Navy", price = 3500.0, stock = 6),
-                        ProductVariant(size = "M", color = "Beige", price = 3500.0, stock = 5)
-                    )
+                Product(
+                    productCode = "TSHIRT-WHT-M",
+                    name = "Classic T-Shirt",
+                    description = "100% Cotton soft crewneck t-shirt. Ideal for casual everyday wear.",
+                    categoryId = "T-Shirts",
+                    size = "M",
+                    color = "White",
+                    price = 3500.0,
+                    stockQuantity = 5,
+                    active = true
                 ),
-                Pair(
-                    Product(
-                        productCode = "QSK-DRESS-004",
-                        name = "Summer Floral Dress",
-                        description = "Lightweight sleeveless A-line summer dress with floral pattern.",
-                        basePrice = 4500.0,
-                        active = true
-                    ),
-                    listOf(
-                        ProductVariant(size = "S", color = "Red Floral", price = 4500.0, stock = 5),
-                        ProductVariant(size = "M", color = "Red Floral", price = 4500.0, stock = 7),
-                        ProductVariant(size = "M", color = "Yellow Floral", price = 4500.0, stock = 2) // Low stock threshold test
-                    )
+                Product(
+                    productCode = "JEANS-BLU-32",
+                    name = "Slim Fit Jeans",
+                    description = "Premium denim slim fit jeans with modern stretch comfort.",
+                    categoryId = "Jeans",
+                    size = "32",
+                    color = "Blue",
+                    price = 5500.0,
+                    stockQuantity = 12,
+                    active = true
+                ),
+                Product(
+                    productCode = "SHIRT-NVY-M",
+                    name = "Casual Button-Down Shirt",
+                    description = "Breathable linen blend casual button-down shirt.",
+                    categoryId = "Shirts",
+                    size = "M",
+                    color = "Navy",
+                    price = 3500.0,
+                    stockQuantity = 8,
+                    active = true
+                ),
+                Product(
+                    productCode = "DRESS-RED-S",
+                    name = "Summer Floral Dress",
+                    description = "Lightweight sleeveless A-line summer dress with floral pattern.",
+                    categoryId = "Dresses",
+                    size = "S",
+                    color = "Red Floral",
+                    price = 4500.0,
+                    stockQuantity = 2,
+                    active = true
                 )
             )
 
-            for ((product, variants) in sampleProducts) {
-                productRepository.saveProduct(product, variants)
+            for (product in sampleProducts) {
+                productRepository.saveProduct(product)
             }
 
             Result.success(Unit)

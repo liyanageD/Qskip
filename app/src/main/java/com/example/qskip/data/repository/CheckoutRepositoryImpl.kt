@@ -97,18 +97,16 @@ class CheckoutRepositoryImpl @Inject constructor(
                 transaction.update(cartRef, "items", emptyList<Any>())
                 transaction.update(cartRef, "rewardPointsToUse", 0)
 
-                // 4. Update Inventory (Simplistic approach for demo)
-                // In a production app, stock should be locked when entering checkout and strictly managed via functions
+                // 4. Update Inventory
                 for (item in order.items) {
-                    val variantRef = firestore.collection("products").document(item.productId)
-                        .collection("variants").document(item.variantId)
-                    val variantSnapshot = transaction.get(variantRef)
-                    val currentStock = variantSnapshot.getLong("stock") ?: 0
+                    val productRef = firestore.collection("products").document(item.productId)
+                    val productSnapshot = transaction.get(productRef)
+                    val currentStock = productSnapshot.getLong("stockQuantity") ?: 0
                     
                     if (currentStock >= item.quantity) {
-                        transaction.update(variantRef, "stock", currentStock - item.quantity)
+                        transaction.update(productRef, "stockQuantity", currentStock - item.quantity)
                     } else {
-                        throw Exception("Insufficient stock for item: ${item.name}")
+                        throw Exception("Insufficient stock for item: ${item.name} (${item.size}/${item.color})")
                     }
                 }
 

@@ -3,7 +3,6 @@ package com.example.qskip.data.repository
 import com.example.qskip.domain.model.Cart
 import com.example.qskip.domain.model.CartItem
 import com.example.qskip.domain.model.Product
-import com.example.qskip.domain.model.ProductVariant
 import com.example.qskip.domain.repository.CartRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,8 +36,6 @@ class CartRepositoryImpl @Inject constructor(
                 return@addSnapshotListener
             }
             if (snapshot != null && snapshot.exists()) {
-                // To keep it simple, we serialize the Cart object directly if possible,
-                // but since Firestore structure might need custom parsing for lists:
                 val cart = snapshot.toObject(Cart::class.java) ?: Cart(userId = getUserId() ?: "")
                 trySend(cart)
             } else {
@@ -49,33 +46,29 @@ class CartRepositoryImpl @Inject constructor(
         awaitClose { listener.remove() }
     }
 
-    override suspend fun addToCart(productId: String, variantId: String, quantity: Int): Result<Unit> {
+    override suspend fun addToCart(productId: String, quantity: Int): Result<Unit> {
         val userId = getUserId() ?: return Result.failure(Exception("User not authenticated"))
         
         return try {
-            // First, fetch product and variant details to construct the CartItem
             val productSnapshot = firestore.collection("products").document(productId).get().await()
-            val variantSnapshot = firestore.collection("products").document(productId)
-                .collection("variants").document(variantId).get().await()
 
-            if (!productSnapshot.exists() || !variantSnapshot.exists()) {
-                return Result.failure(Exception("Product or variant not found"))
+            if (!productSnapshot.exists()) {
+                return Result.failure(Exception("Product not found"))
             }
 
             val product = productSnapshot.toObject(Product::class.java)!!
-            val variant = variantSnapshot.toObject(ProductVariant::class.java)!!
 
-            if (variant.stock < quantity) {
-                return Result.failure(Exception("Not enough stock available"))
+            if (product.stockQuantity < quantity) {
+                return Result.failure(Exception("Only ${product.stockQuantity} units available for ${product.name} (${product.size}/${product.color})"))
             }
 
             val newItem = CartItem(
-                productId = productId,
-                variantId = variantId,
+                productId = product.productId,
+                productCode = product.productCode,
                 name = product.name,
-                size = variant.size,
-                color = variant.color,
-                unitPrice = variant.price,
+                size = product.size,
+                color = product.color,
+                unitPrice = product.price,
                 imageUrl = product.imageUrls.firstOrNull(),
                 quantity = quantity
             )
@@ -91,12 +84,12 @@ class CartRepositoryImpl @Inject constructor(
                 }
 
                 val currentItems = cart.items.toMutableList()
-                val existingItemIndex = currentItems.indexOfFirst { it.productId == productId && it.variantId == variantId }
+                val existingItemIndex = currentItems.indexOfFirst { it.productId == productId }
 
                 if (existingItemIndex != -1) {
                     val existing = currentItems[existingItemIndex]
-                    if (existing.quantity + quantity > variant.stock) {
-                        throw Exception("Cannot add more than available stock")
+                    if (existing.quantity + quantity > product.stockQuantity) {
+                        throw Exception("Cannot add more than available stock (${product.stockQuantity})")
                     }
                     currentItems[existingItemIndex] = existing.copy(quantity = existing.quantity + quantity)
                 } else {
@@ -112,17 +105,15 @@ class CartRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateQuantity(productId: String, variantId: String, quantity: Int): Result<Unit> {
+    override suspend fun updateQuantity(productId: String, quantity: Int): Result<Unit> {
         val userId = getUserId() ?: return Result.failure(Exception("User not authenticated"))
-        if (quantity <= 0) return removeFromCart(productId, variantId)
+        if (quantity <= 0) return removeFromCart(productId)
 
         return try {
-            // Check stock first
-            val variantSnapshot = firestore.collection("products").document(productId)
-                .collection("variants").document(variantId).get().await()
-            val variant = variantSnapshot.toObject(ProductVariant::class.java)
+            val productSnapshot = firestore.collection("products").document(productId).get().await()
+            val product = productSnapshot.toObject(Product::class.java)
             
-            if (variant == null || variant.stock < quantity) {
+            if (product == null || product.stockQuantity < quantity) {
                 return Result.failure(Exception("Requested quantity not available in stock"))
             }
 
@@ -133,7 +124,7 @@ class CartRepositoryImpl @Inject constructor(
                 if (snapshot.exists()) {
                     val cart = snapshot.toObject(Cart::class.java)!!
                     val updatedItems = cart.items.map {
-                        if (it.productId == productId && it.variantId == variantId) {
+                        if (it.productId == productId) {
                             it.copy(quantity = quantity)
                         } else it
                     }
@@ -146,7 +137,7 @@ class CartRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun removeFromCart(productId: String, variantId: String): Result<Unit> {
+    override suspend fun removeFromCart(productId: String): Result<Unit> {
         val userId = getUserId() ?: return Result.failure(Exception("User not authenticated"))
         
         return try {
@@ -156,7 +147,7 @@ class CartRepositoryImpl @Inject constructor(
                 
                 if (snapshot.exists()) {
                     val cart = snapshot.toObject(Cart::class.java)!!
-                    val updatedItems = cart.items.filterNot { it.productId == productId && it.variantId == variantId }
+                    val updatedItems = cart.items.filterNot { it.productId == productId }
                     transaction.update(cartRef, "items", updatedItems)
                 }
             }.await()

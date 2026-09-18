@@ -7,10 +7,16 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.qskip.admin.customers.AdminCustomersScreen
 import com.example.qskip.admin.dashboard.AdminDashboardScreen
 import com.example.qskip.admin.exitverification.AdminExitScannerScreen
+import com.example.qskip.admin.inventory.AdminInventoryScreen
+import com.example.qskip.admin.orders.AdminOrdersScreen
 import com.example.qskip.admin.products.AdminAddProductScreen
 import com.example.qskip.admin.products.AdminProductListScreen
+import com.example.qskip.admin.promotions.AdminPromotionsScreen
+import com.example.qskip.admin.reviews.AdminReviewsScreen
+import com.example.qskip.admin.rewards.AdminRewardsScreen
 import com.example.qskip.presentation.auth.AdminLoginScreen
 import com.example.qskip.presentation.auth.LoginScreen
 import com.example.qskip.presentation.auth.RegisterScreen
@@ -240,7 +246,27 @@ fun QskipNavGraph(
                     navController.navigate(Screen.AdminProductList.route)
                 },
                 onNavigateToInventory = {
-                    navController.navigate(Screen.AdminProductList.route)
+                    navController.navigate(Screen.AdminInventory.route)
+                },
+                onNavigateToOrders = {
+                    navController.navigate(Screen.AdminOrders.route)
+                },
+                onNavigateToCustomers = {
+                    navController.navigate(Screen.AdminCustomers.route)
+                },
+                onNavigateToPromotions = {
+                    navController.navigate(Screen.AdminPromotions.route)
+                },
+                onNavigateToReviews = {
+                    navController.navigate(Screen.AdminReviews.route)
+                },
+                onNavigateToRewards = {
+                    navController.navigate(Screen.AdminRewards.route)
+                },
+                onAdminLogout = {
+                    navController.navigate(Screen.AdminLogin.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 },
                 onNavigateBack = {
                     navController.popBackStack()
@@ -261,14 +287,77 @@ fun QskipNavGraph(
                 onNavigateToAddProduct = {
                     navController.navigate(Screen.AdminAddProduct.route)
                 },
+                onNavigateToEditProduct = { productId ->
+                    navController.navigate("${Screen.AdminAddProduct.route}?productId=$productId")
+                },
                 onNavigateBack = {
                     navController.popBackStack()
                 }
             )
         }
 
-        composable(route = Screen.AdminAddProduct.route) {
+        composable(
+            route = "${Screen.AdminAddProduct.route}?productId={productId}",
+            arguments = listOf(navArgument("productId") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            })
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString("productId")
             AdminAddProductScreen(
+                productId = productId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Screen.AdminInventory.route) {
+            AdminInventoryScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Screen.AdminOrders.route) {
+            AdminOrdersScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onViewReceipt = { orderId ->
+                    navController.navigate("${Screen.Receipt.route}/$orderId")
+                }
+            )
+        }
+
+        composable(route = Screen.AdminCustomers.route) {
+            AdminCustomersScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Screen.AdminPromotions.route) {
+            AdminPromotionsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Screen.AdminReviews.route) {
+            AdminReviewsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Screen.AdminRewards.route) {
+            AdminRewardsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 }

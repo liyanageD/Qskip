@@ -11,7 +11,7 @@ class CartUnitTest {
     fun cart_subtotalCalculation_isCorrect() {
         val item1 = CartItem(
             productId = "P1",
-            variantId = "V1",
+            productCode = "TSHIRT-BLK-M",
             name = "Shirt",
             size = "M",
             color = "Blue",
@@ -20,7 +20,7 @@ class CartUnitTest {
         )
         val item2 = CartItem(
             productId = "P2",
-            variantId = "V2",
+            productCode = "JEANS-BLU-32",
             name = "Jeans",
             size = "32",
             color = "Black",
@@ -39,7 +39,7 @@ class CartUnitTest {
     fun cart_rewardDiscountCalculation_isCorrect() {
         val item = CartItem(
             productId = "P1",
-            variantId = "V1",
+            productCode = "TSHIRT-BLK-M",
             name = "Shirt",
             size = "M",
             color = "Blue",

@@ -25,12 +25,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.example.qskip.domain.model.ProductVariant
 import com.example.qskip.utils.QrDownloadUtil
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminAddProductScreen(
+    productId: String? = null,
     onNavigateBack: () -> Unit,
     viewModel: AdminProductViewModel = hiltViewModel()
 ) {
@@ -38,9 +38,15 @@ fun AdminAddProductScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     var name by remember { mutableStateOf("") }
-    var productCode by remember { mutableStateOf("QSK-TSHIRT-00" + (1..9).random()) }
+    var productCode by remember { mutableStateOf("TSHIRT-BLK-M") }
+    var category by remember { mutableStateOf("T-Shirts") }
+    var size by remember { mutableStateOf("M") }
+    var color by remember { mutableStateOf("Black") }
+    var priceInput by remember { mutableStateOf("3500") }
+    var stockInput by remember { mutableStateOf("10") }
     var description by remember { mutableStateOf("") }
-    var basePrice by remember { mutableStateOf("2500") }
+    var active by remember { mutableStateOf(true) }
+    var existingImageUrls by remember { mutableStateOf<List<String>>(emptyList()) }
 
     // Image Picker State
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -56,11 +62,28 @@ fun AdminAddProductScreen(
         }
     }
 
-    // Variant Form State
-    var variantSize by remember { mutableStateOf("M") }
-    var variantColor by remember { mutableStateOf("Black") }
-    var variantStock by remember { mutableStateOf("10") }
-    val variants = remember { mutableStateListOf<ProductVariant>() }
+    // Load existing product if editing
+    LaunchedEffect(productId) {
+        if (!productId.isNullOrBlank()) {
+            viewModel.loadProductForEdit(productId)
+        }
+    }
+
+    // Populate state when editingProduct changes
+    LaunchedEffect(uiState.editingProduct) {
+        uiState.editingProduct?.let { p ->
+            name = p.name
+            productCode = p.productCode
+            category = p.categoryId
+            size = p.size
+            color = p.color
+            priceInput = p.price.toString()
+            stockInput = p.stockQuantity.toString()
+            description = p.description
+            active = p.active
+            existingImageUrls = p.imageUrls
+        }
+    }
 
     LaunchedEffect(uiState.isSaveSuccess) {
         if (uiState.isSaveSuccess) {
@@ -69,10 +92,12 @@ fun AdminAddProductScreen(
         }
     }
 
+    val isEditMode = !productId.isNullOrBlank()
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add New Product") },
+                title = { Text(if (isEditMode) "Edit Product" else "Add New Product") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -103,7 +128,7 @@ fun AdminAddProductScreen(
             }
 
             // Image Picker UI
-            Text("Product Image (Supabase Storage)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("Product Image", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(
@@ -112,10 +137,11 @@ fun AdminAddProductScreen(
                     .height(180.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (selectedImageUri != null) {
+                val displayModel = selectedImageUri ?: existingImageUrls.firstOrNull()
+                if (displayModel != null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         AsyncImage(
-                            model = selectedImageUri,
+                            model = displayModel,
                             contentDescription = "Selected Image",
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -158,10 +184,68 @@ fun AdminAddProductScreen(
             OutlinedTextField(
                 value = productCode,
                 onValueChange = { productCode = it },
-                label = { Text("Product QR Code / Identifier") },
+                label = { Text("Product Code") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = category,
+                onValueChange = { category = it },
+                label = { Text("Category") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = size,
+                    onValueChange = { size = it },
+                    label = { Text("Size") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = color,
+                    onValueChange = { color = it },
+                    label = { Text("Color") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = priceInput,
+                    onValueChange = { priceInput = it },
+                    label = { Text("Price (Rs.)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = stockInput,
+                    onValueChange = { stockInput = it },
+                    label = { Text("Stock Quantity") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -175,87 +259,16 @@ fun AdminAddProductScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = basePrice,
-                onValueChange = { basePrice = it },
-                label = { Text("Base Price (Rs.)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Add Variant Section
-            Text("Product Variants (Size / Color / Stock)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                OutlinedTextField(
-                    value = variantSize,
-                    onValueChange = { variantSize = it },
-                    label = { Text("Size") },
-                    modifier = Modifier.weight(1f)
+                Text("Active Status", fontWeight = FontWeight.Bold)
+                Switch(
+                    checked = active,
+                    onCheckedChange = { active = it }
                 )
-                OutlinedTextField(
-                    value = variantColor,
-                    onValueChange = { variantColor = it },
-                    label = { Text("Color") },
-                    modifier = Modifier.weight(1f)
-                )
-                OutlinedTextField(
-                    value = variantStock,
-                    onValueChange = { variantStock = it },
-                    label = { Text("Stock") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    val price = basePrice.toDoubleOrNull() ?: 0.0
-                    val stock = variantStock.toIntOrNull() ?: 0
-                    if (variantSize.isNotBlank() && variantColor.isNotBlank()) {
-                        variants.add(
-                            ProductVariant(
-                                size = variantSize,
-                                color = variantColor,
-                                price = price,
-                                stock = stock
-                            )
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Add Variant")
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Display added variants
-            variants.forEachIndexed { index, variant ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("${variant.size} / ${variant.color} - Stock: ${variant.stock} (Rs. ${variant.price})")
-                        TextButton(onClick = { variants.removeAt(index) }) {
-                            Text("Remove", color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -304,14 +317,21 @@ fun AdminAddProductScreen(
 
             Button(
                 onClick = {
-                    val price = basePrice.toDoubleOrNull() ?: 0.0
+                    val price = priceInput.toDoubleOrNull() ?: 0.0
+                    val stock = stockInput.toIntOrNull() ?: 0
                     viewModel.saveProductWithImage(
+                        productId = productId ?: "",
                         name = name,
                         productCode = productCode,
                         description = description,
-                        basePrice = price,
+                        category = category,
+                        size = size,
+                        color = color,
+                        price = price,
+                        stockQuantity = stock,
                         imageBytes = imageBytes,
-                        variants = variants.toList()
+                        existingImageUrls = existingImageUrls,
+                        active = active
                     )
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -320,7 +340,7 @@ fun AdminAddProductScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Save Product to Store")
+                    Text(if (isEditMode) "Update Product" else "Save Product to Store")
                 }
             }
         }
