@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.example.qskip.presentation.main.MainScreen
 import com.example.qskip.presentation.navigation.QskipNavGraph
 import com.example.qskip.ui.theme.QskipTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,8 +25,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
-                    QskipNavGraph(navController = navController)
+                    MainScreen()
                 }
             }
         }

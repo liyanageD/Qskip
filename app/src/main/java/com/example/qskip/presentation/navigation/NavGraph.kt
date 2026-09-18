@@ -20,11 +20,13 @@ import com.example.qskip.presentation.scanner.ScannerScreen
 @Composable
 fun QskipNavGraph(
     navController: NavHostController,
-    startDestination: String = Screen.Login.route
+    startDestination: String = Screen.Login.route,
+    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination,
+        modifier = modifier
     ) {
         composable(route = Screen.Login.route) {
             LoginScreen(
@@ -94,7 +96,18 @@ fun QskipNavGraph(
                     navController.popBackStack()
                 },
                 onAddToCart = { _ ->
-                    // Logic to add to cart
+                    navController.navigate(Screen.Cart.route)
+                }
+            )
+        }
+
+        composable(route = Screen.Cart.route) {
+            com.example.qskip.presentation.cart.CartScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onCheckout = {
+                    // Navigate to checkout
                 }
             )
         }
