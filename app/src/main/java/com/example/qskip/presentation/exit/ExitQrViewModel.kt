@@ -33,8 +33,9 @@ class ExitQrViewModel @Inject constructor(
     val uiState: StateFlow<ExitQrUiState> = _uiState.asStateFlow()
 
     init {
-        if (orderId != null) {
-            loadOrderAndGenerateQr(orderId)
+        val targetId = orderId?.trim()
+        if (!targetId.isNullOrBlank()) {
+            loadOrderAndGenerateQr(targetId)
         } else {
             loadLatestOrder()
         }
@@ -45,13 +46,7 @@ class ExitQrViewModel @Inject constructor(
         viewModelScope.launch {
             orderRepository.getOrderById(id).collect { order ->
                 if (order != null) {
-                    val tokenId = order.exitTokenId ?: ""
-                    val bitmap = QrGeneratorUtil.generateQrBitmap(tokenId)
-                    _uiState.value = _uiState.value.copy(
-                        order = order,
-                        qrBitmap = bitmap,
-                        isLoading = false
-                    )
+                    processOrderExitPass(order)
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -67,20 +62,52 @@ class ExitQrViewModel @Inject constructor(
         viewModelScope.launch {
             orderRepository.getUserOrders().collect { orders ->
                 val latest = orders.firstOrNull()
-                if (latest != null && latest.exitTokenId != null) {
-                    val bitmap = QrGeneratorUtil.generateQrBitmap(latest.exitTokenId)
-                    _uiState.value = _uiState.value.copy(
-                        order = latest,
-                        qrBitmap = bitmap,
-                        isLoading = false
-                    )
+                if (latest != null) {
+                    processOrderExitPass(latest)
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = "No active exit QR code found"
+                        error = "No active orders found"
                     )
                 }
             }
+        }
+    }
+
+    private fun processOrderExitPass(order: Order) {
+        // Verify order payment eligibility
+        val isPaid = order.paymentStatus == "MOCK_SUCCESS" || 
+                     order.paymentStatus == "SUCCESS" || 
+                     order.orderStatus == "PAID" || 
+                     order.orderStatus == "COMPLETED"
+
+        if (!isPaid) {
+            _uiState.value = _uiState.value.copy(
+                order = order,
+                qrBitmap = null,
+                isLoading = false,
+                error = "Exit QR is not available for this order (Payment Pending)."
+            )
+            return
+        }
+
+        val tokenId = if (!order.exitTokenId.isNullOrBlank()) order.exitTokenId else order.orderId
+        val bitmap = QrGeneratorUtil.generateQrBitmap(tokenId)
+
+        if (bitmap != null) {
+            _uiState.value = _uiState.value.copy(
+                order = order,
+                qrBitmap = bitmap,
+                isLoading = false,
+                error = null
+            )
+        } else {
+            _uiState.value = _uiState.value.copy(
+                order = order,
+                qrBitmap = null,
+                isLoading = false,
+                error = "Exit QR code is not available for this order."
+            )
         }
     }
 }
