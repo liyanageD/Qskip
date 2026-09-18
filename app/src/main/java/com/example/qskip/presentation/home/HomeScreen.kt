@@ -30,6 +30,8 @@ import com.example.qskip.domain.model.Product
 fun HomeScreen(
     onNavigateToScanner: () -> Unit,
     onNavigateToProduct: (String) -> Unit,
+    onNavigateToOrders: () -> Unit,
+    onNavigateToAdmin: () -> Unit,
     onLogout: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -44,6 +46,9 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("Qskip", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
                 actions = {
+                    TextButton(onClick = onNavigateToAdmin) {
+                        Text("Admin", fontWeight = FontWeight.Bold)
+                    }
                     IconButton(onClick = { viewModel.logout() }) {
                         Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
                     }
@@ -104,6 +109,25 @@ fun HomeScreen(
                             fontWeight = FontWeight.Bold
                         )
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Order History Shortcut
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onNavigateToOrders,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("View Orders & Exit QR Pass", style = MaterialTheme.typography.titleMedium)
                 }
             }
 

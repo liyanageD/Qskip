@@ -7,4 +7,16 @@ sealed class Screen(val route: String) {
     object Scanner : Screen("scanner")
     object ProductDetails : Screen("product_details")
     object Cart : Screen("cart")
+    object Wishlist : Screen("wishlist")
+    object Checkout : Screen("checkout")
+    object PaymentSuccess : Screen("payment_success")
+    object ExitQr : Screen("exit_qr")
+    object OrderHistory : Screen("order_history")
+    object Receipt : Screen("receipt")
+    
+    // Admin routes
+    object AdminDashboard : Screen("admin_dashboard")
+    object AdminExitScanner : Screen("admin_exit_scanner")
+    object AdminProductList : Screen("admin_product_list")
+    object AdminAddProduct : Screen("admin_add_product")
 }

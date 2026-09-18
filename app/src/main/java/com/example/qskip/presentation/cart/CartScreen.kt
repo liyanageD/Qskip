@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,6 +42,11 @@ fun CartScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    TextButton(onClick = { viewModel.setShowBudgetDialog(true) }) {
+                        Text(if (cart.budget > 0) "Budget: Rs. ${cart.budget}" else "Set Budget")
                     }
                 }
             )
@@ -89,6 +95,32 @@ fun CartScreen(
                             Text("Rs. ${cart.total}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         }
                         
+                        if (cart.budget > 0 && cart.total > cart.budget) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Surface(
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        contentDescription = "Budget Exceeded",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "You are over budget by Rs. ${cart.total - cart.budget}",
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
@@ -163,6 +195,14 @@ fun CartScreen(
                     )
                 }
             }
+        }
+        
+        if (uiState.showBudgetDialog) {
+            BudgetDialog(
+                currentBudget = cart.budget,
+                onDismissRequest = { viewModel.setShowBudgetDialog(false) },
+                onBudgetUpdated = { newBudget -> viewModel.updateBudget(newBudget) }
+            )
         }
     }
 }

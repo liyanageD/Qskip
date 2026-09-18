@@ -14,7 +14,8 @@ import javax.inject.Inject
 data class CartUiState(
     val cart: Cart = Cart(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val showBudgetDialog: Boolean = false
 )
 
 @HiltViewModel
@@ -56,6 +57,23 @@ class CartViewModel @Inject constructor(
             val result = cartRepository.removeFromCart(productId, variantId)
             if (result.isFailure) {
                 _uiState.value = _uiState.value.copy(error = result.exceptionOrNull()?.message ?: "Failed to remove item")
+            }
+        }
+    }
+
+    fun setShowBudgetDialog(show: Boolean) {
+        _uiState.value = _uiState.value.copy(showBudgetDialog = show)
+    }
+
+    fun updateBudget(budget: Double) {
+        viewModelScope.launch {
+            val result = cartRepository.setBudget(budget)
+            if (result.isSuccess) {
+                _uiState.value = _uiState.value.copy(showBudgetDialog = false)
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    error = result.exceptionOrNull()?.message ?: "Failed to set budget"
+                )
             }
         }
     }

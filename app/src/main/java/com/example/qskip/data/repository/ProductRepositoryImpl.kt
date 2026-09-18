@@ -122,4 +122,67 @@ class ProductRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun saveProduct(product: Product, variants: List<ProductVariant>): Result<Unit> {
+        return try {
+            val productId = if (product.productId.isBlank()) {
+                firestore.collection("products").document().id
+            } else {
+                product.productId
+            }
+
+            val updatedProduct = product.copy(
+                productId = productId,
+                updatedAt = System.currentTimeMillis(),
+                createdAt = if (product.createdAt == 0L) System.currentTimeMillis() else product.createdAt
+            )
+
+            val batch = firestore.batch()
+            val productRef = firestore.collection("products").document(productId)
+            batch.set(productRef, updatedProduct)
+
+            variants.forEach { variant ->
+                val variantId = if (variant.variantId.isBlank()) {
+                    productRef.collection("variants").document().id
+                } else {
+                    variant.variantId
+                }
+                val updatedVariant = variant.copy(
+                    variantId = variantId,
+                    productId = productId
+                )
+                val variantRef = productRef.collection("variants").document(variantId)
+                batch.set(variantRef, updatedVariant)
+            }
+
+            batch.commit().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateVariantStock(productId: String, variantId: String, newStock: Int): Result<Unit> {
+        return try {
+            firestore.collection("products").document(productId)
+                .collection("variants").document(variantId)
+                .update("stock", newStock)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteProduct(productId: String): Result<Unit> {
+        return try {
+            // Soft delete by setting active = false
+            firestore.collection("products").document(productId)
+                .update("active", false)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

@@ -20,8 +20,8 @@ fun MainScreen() {
     // Define routes that should show the bottom bar
     val bottomBarRoutes = listOf(
         Screen.Home.route,
-        Screen.Cart.route
-        // Add Wishlist or Profile here when implemented
+        Screen.Cart.route,
+        Screen.Wishlist.route
     )
     
     val showBottomBar = currentRoute in bottomBarRoutes

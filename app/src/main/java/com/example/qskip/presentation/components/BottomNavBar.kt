@@ -1,6 +1,7 @@
 package com.example.qskip.presentation.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -20,6 +21,7 @@ fun BottomNavBar(navController: NavController) {
         Screen.Home to Icons.Default.Home,
         Screen.Scanner to Icons.Default.Search,
         Screen.Cart to Icons.Default.ShoppingCart,
+        Screen.Wishlist to Icons.Default.Favorite,
     )
     
     val navBackStackEntry = navController.currentBackStackEntryAsState()
