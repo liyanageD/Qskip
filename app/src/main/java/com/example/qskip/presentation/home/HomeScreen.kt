@@ -31,7 +31,7 @@ fun HomeScreen(
     onNavigateToScanner: () -> Unit,
     onNavigateToProduct: (String) -> Unit,
     onNavigateToOrders: () -> Unit,
-    onNavigateToAdmin: () -> Unit,
+    onNavigateToBudget: () -> Unit,
     onLogout: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -46,9 +46,6 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("Qskip", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
                 actions = {
-                    TextButton(onClick = onNavigateToAdmin) {
-                        Text("Admin", fontWeight = FontWeight.Bold)
-                    }
                     IconButton(onClick = { viewModel.logout() }) {
                         Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
                     }
@@ -108,6 +105,53 @@ fun HomeScreen(
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Shopping Budget Card (Requirement 28)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().clickable { onNavigateToBudget() },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("SHOPPING BUDGET", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            TextButton(onClick = onNavigateToBudget) {
+                                Text(if (uiState.budget > 0) "Manage" else "Set Budget")
+                            }
+                        }
+
+                        if (uiState.budget > 0) {
+                            val diff = uiState.budget - uiState.cartTotal
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Budget: Rs. ${uiState.budget.toInt()}", style = MaterialTheme.typography.bodyMedium)
+                                Text("Spent: Rs. ${uiState.cartTotal.toInt()}", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            if (diff >= 0) {
+                                Text("Remaining: Rs. ${diff.toInt()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            } else {
+                                Text("Over by: Rs. ${(-diff).toInt()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                            }
+                        } else {
+                            Text("No budget set for this shopping session.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }

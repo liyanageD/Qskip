@@ -1,5 +1,8 @@
 package com.example.qskip.admin.products
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,16 +11,22 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.qskip.domain.model.ProductVariant
+import com.example.qskip.utils.QrDownloadUtil
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,12 +34,27 @@ fun AdminAddProductScreen(
     onNavigateBack: () -> Unit,
     viewModel: AdminProductViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
     var name by remember { mutableStateOf("") }
     var productCode by remember { mutableStateOf("QSK-TSHIRT-00" + (1..9).random()) }
     var description by remember { mutableStateOf("") }
     var basePrice by remember { mutableStateOf("2500") }
+
+    // Image Picker State
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageBytes by remember { mutableStateOf<ByteArray?>(null) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+        if (uri != null) {
+            val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            imageBytes = bytes
+        }
+    }
 
     // Variant Form State
     var variantSize by remember { mutableStateOf("M") }
@@ -77,6 +101,49 @@ fun AdminAddProductScreen(
                     )
                 }
             }
+
+            // Image Picker UI
+            Text("Product Image (Supabase Storage)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (selectedImageUri != null) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        AsyncImage(
+                            model = selectedImageUri,
+                            contentDescription = "Selected Image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(130.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(onClick = { imagePickerLauncher.launch("image/*") }) {
+                            Text("Change Image")
+                        }
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { imagePickerLauncher.launch("image/*") },
+                        modifier = Modifier.fillMaxWidth().height(80.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Add, contentDescription = "Upload Image")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Select Image from Gallery")
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
                 value = name,
@@ -213,7 +280,23 @@ fun AdminAddProductScreen(
                         contentDescription = "Generated QR",
                         modifier = Modifier.size(180.dp)
                     )
-                    Text("QR Code for: $productCode", style = MaterialTheme.typography.bodySmall)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Code: $productCode", style = MaterialTheme.typography.bodySmall)
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            QrDownloadUtil.saveQrCodeToDownloads(
+                                context = context,
+                                qrBitmap = qrBitmap,
+                                productName = name.ifBlank { "Product" },
+                                productCode = productCode
+                            )
+                        }
+                    ) {
+                        Text("Download QR PNG")
+                    }
                 }
             }
 
@@ -227,7 +310,7 @@ fun AdminAddProductScreen(
                         productCode = productCode,
                         description = description,
                         basePrice = price,
-                        imageBytes = null, // Can integrate system PhotoPicker here
+                        imageBytes = imageBytes,
                         variants = variants.toList()
                     )
                 },

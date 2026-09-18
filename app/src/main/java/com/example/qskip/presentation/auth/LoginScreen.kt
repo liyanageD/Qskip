@@ -16,6 +16,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit,
+    onNavigateToAdminLogin: () -> Unit = {},
     onLoginSuccess: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -99,6 +100,12 @@ fun LoginScreen(
 
         TextButton(onClick = onNavigateToRegister) {
             Text("Don't have an account? Register")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextButton(onClick = onNavigateToAdminLogin) {
+            Text("Staff / Admin Portal", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
         }
     }
 }

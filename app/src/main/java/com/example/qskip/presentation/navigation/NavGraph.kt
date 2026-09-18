@@ -11,8 +11,10 @@ import com.example.qskip.admin.dashboard.AdminDashboardScreen
 import com.example.qskip.admin.exitverification.AdminExitScannerScreen
 import com.example.qskip.admin.products.AdminAddProductScreen
 import com.example.qskip.admin.products.AdminProductListScreen
+import com.example.qskip.presentation.auth.AdminLoginScreen
 import com.example.qskip.presentation.auth.LoginScreen
 import com.example.qskip.presentation.auth.RegisterScreen
+import com.example.qskip.presentation.budget.BudgetScreen
 import com.example.qskip.presentation.cart.CartScreen
 import com.example.qskip.presentation.checkout.CheckoutScreen
 import com.example.qskip.presentation.exit.ExitQrScreen
@@ -40,8 +42,24 @@ fun QskipNavGraph(
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
                 },
+                onNavigateToAdminLogin = {
+                    navController.navigate(Screen.AdminLogin.route)
+                },
                 onLoginSuccess = {
                     navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(route = Screen.AdminLogin.route) {
+            AdminLoginScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onAdminLoginSuccess = {
+                    navController.navigate(Screen.AdminDashboard.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
@@ -74,8 +92,8 @@ fun QskipNavGraph(
                 onNavigateToOrders = {
                     navController.navigate(Screen.OrderHistory.route)
                 },
-                onNavigateToAdmin = {
-                    navController.navigate(Screen.AdminDashboard.route)
+                onNavigateToBudget = {
+                    navController.navigate(Screen.Budget.route)
                 },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
@@ -132,6 +150,14 @@ fun QskipNavGraph(
                 },
                 onNavigateToProduct = { productId ->
                     navController.navigate("${Screen.ProductDetails.route}/$productId")
+                }
+            )
+        }
+
+        composable(route = Screen.Budget.route) {
+            BudgetScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

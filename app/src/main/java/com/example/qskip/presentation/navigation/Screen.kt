@@ -13,8 +13,10 @@ sealed class Screen(val route: String) {
     object ExitQr : Screen("exit_qr")
     object OrderHistory : Screen("order_history")
     object Receipt : Screen("receipt")
+    object Budget : Screen("budget")
     
     // Admin routes
+    object AdminLogin : Screen("admin_login")
     object AdminDashboard : Screen("admin_dashboard")
     object AdminExitScanner : Screen("admin_exit_scanner")
     object AdminProductList : Screen("admin_product_list")
