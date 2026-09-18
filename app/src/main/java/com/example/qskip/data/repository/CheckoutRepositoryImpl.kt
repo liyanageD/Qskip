@@ -5,6 +5,7 @@ import com.example.qskip.domain.model.ExitToken
 import com.example.qskip.domain.model.Order
 import com.example.qskip.domain.repository.CheckoutRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -62,6 +63,8 @@ class CheckoutRepositoryImpl @Inject constructor(
 
         return try {
             firestore.runTransaction { transaction ->
+                // ==================== PHASE 1: ALL READS ====================
+                // 1. Read Order
                 val orderRef = firestore.collection("orders").document(orderId)
                 val orderSnapshot = transaction.get(orderRef)
                 val order = orderSnapshot.toObject(Order::class.java) 
@@ -71,6 +74,24 @@ class CheckoutRepositoryImpl @Inject constructor(
                     throw Exception("Order is not in pending state")
                 }
 
+                // 2. Read Inventory Products
+                val productReadMap = mutableMapOf<DocumentReference, Long>()
+                for (item in order.items) {
+                    val productRef = firestore.collection("products").document(item.productId)
+                    val productSnapshot = transaction.get(productRef)
+                    val currentStock = productSnapshot.getLong("stockQuantity") ?: 0
+                    if (currentStock < item.quantity) {
+                        throw Exception("Insufficient stock for item: ${item.name} (${item.size}/${item.color}). Only $currentStock left in stock.")
+                    }
+                    productReadMap[productRef] = currentStock - item.quantity
+                }
+
+                // 3. Read User Rewards Profile
+                val userRef = firestore.collection("users").document(userId)
+                val userSnapshot = transaction.get(userRef)
+                val currentPoints = userSnapshot.getLong("rewardPoints") ?: 0
+
+                // ==================== PHASE 2: ALL WRITES ====================
                 // 1. Generate Payment Ref and Exit Token
                 val paymentRef = "PAY-${System.currentTimeMillis()}-${(1000..9999).random()}"
                 val tokenId = "EXIT-" + UUID.randomUUID().toString().substring(0, 12).uppercase()
@@ -98,25 +119,13 @@ class CheckoutRepositoryImpl @Inject constructor(
                 transaction.update(cartRef, "rewardPointsToUse", 0)
 
                 // 4. Update Inventory
-                for (item in order.items) {
-                    val productRef = firestore.collection("products").document(item.productId)
-                    val productSnapshot = transaction.get(productRef)
-                    val currentStock = productSnapshot.getLong("stockQuantity") ?: 0
-                    
-                    if (currentStock >= item.quantity) {
-                        transaction.update(productRef, "stockQuantity", currentStock - item.quantity)
-                    } else {
-                        throw Exception("Insufficient stock for item: ${item.name} (${item.size}/${item.color})")
-                    }
+                for ((productRef, newStock) in productReadMap) {
+                    transaction.update(productRef, "stockQuantity", newStock)
                 }
 
                 // 5. Award Reward Points (e.g., 1 point per 100 Rs spent)
-                val userRef = firestore.collection("users").document(userId)
-                val userSnapshot = transaction.get(userRef)
-                val currentPoints = userSnapshot.getLong("rewardPoints") ?: 0
                 val pointsEarned = (order.total / 100).toLong()
                 val pointsUsed = (order.rewardDiscount / 0.5).toLong() // 1 point = 0.5 Rs
-                
                 val finalPoints = currentPoints + pointsEarned - pointsUsed
                 transaction.update(userRef, "rewardPoints", maxOf(0, finalPoints))
                 

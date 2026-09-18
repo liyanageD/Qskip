@@ -10,7 +10,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -19,7 +21,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.R
+import com.example.qskip.utils.autofill
+import com.example.qskip.utils.commitAutofill
+import com.example.qskip.utils.rememberAutofillManager
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit,
@@ -28,9 +34,11 @@ fun LoginScreen(
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val autofillManager = rememberAutofillManager()
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
+            commitAutofill(autofillManager)
             onLoginSuccess()
             viewModel.resetState()
         }
@@ -64,7 +72,12 @@ fun LoginScreen(
             value = uiState.email,
             onValueChange = viewModel::onEmailChange,
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .autofill(
+                    autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Username),
+                    onFill = viewModel::onEmailChange
+                ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -78,7 +91,12 @@ fun LoginScreen(
             value = uiState.password,
             onValueChange = viewModel::onPasswordChange,
             label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .autofill(
+                    autofillTypes = listOf(AutofillType.Password),
+                    onFill = viewModel::onPasswordChange
+                ),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
