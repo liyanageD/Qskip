@@ -43,21 +43,23 @@ class ProductViewModel @Inject constructor(
     private fun loadProductDetails() {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            val result = productRepository.getProductById(productId)
             val wishlistResult = wishlistRepository.isInWishlist(productId)
-            
-            if (result.isSuccess) {
-                val data = result.getOrNull()
-                _uiState.value = _uiState.value.copy(
-                    product = data,
-                    isInWishlist = wishlistResult.getOrDefault(false),
-                    isLoading = false
-                )
-            } else {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = result.exceptionOrNull()?.message ?: "Failed to load product"
-                )
+            val inWishlist = wishlistResult.getOrDefault(false)
+
+            productRepository.getProductByIdFlow(productId).collect { product ->
+                if (product != null) {
+                    _uiState.value = _uiState.value.copy(
+                        product = product,
+                        isInWishlist = inWishlist,
+                        isLoading = false,
+                        error = null
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Product not available"
+                    )
+                }
             }
         }
     }

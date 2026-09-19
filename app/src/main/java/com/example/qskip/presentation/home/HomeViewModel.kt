@@ -34,7 +34,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         checkAuthStatus()
-        loadRecommendedProducts()
+        observeRecommendedProducts()
         loadBudgetData()
     }
 
@@ -57,19 +57,13 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-    fun loadRecommendedProducts() {
+    private fun observeRecommendedProducts() {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            val result = productRepository.getRecommendedProducts()
-            if (result.isSuccess) {
+            productRepository.getProductsFlow().collect { products ->
                 _uiState.value = _uiState.value.copy(
-                    recommendedProducts = result.getOrDefault(emptyList()),
+                    recommendedProducts = products.take(10),
                     isLoading = false
-                )
-            } else {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = result.exceptionOrNull()?.localizedMessage ?: "Failed to load products"
                 )
             }
         }

@@ -32,6 +32,33 @@ class ProductRepositoryImpl @Inject constructor(
         awaitClose { listener.remove() }
     }
 
+    override fun getProductByIdFlow(productId: String): Flow<Product?> = callbackFlow {
+        val listener = firestore.collection("products").document(productId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+                val product = snapshot?.toObject(Product::class.java)?.let { p ->
+                    if (p.productId.isBlank()) p.copy(productId = snapshot.id) else p
+                }
+                trySend(product)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    override fun getProductByCodeFlow(productCode: String): Flow<Product?> = callbackFlow {
+        val listener = firestore.collection("products")
+            .whereEqualTo("productCode", productCode)
+            .limit(1)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+                val doc = snapshot?.documents?.firstOrNull()
+                val product = doc?.toObject(Product::class.java)?.let { p ->
+                    if (p.productId.isBlank()) p.copy(productId = doc.id) else p
+                }
+                trySend(product)
+            }
+        awaitClose { listener.remove() }
+    }
+
     override suspend fun getProducts(): Result<List<Product>> {
         return try {
             val snapshot = firestore.collection("products")
