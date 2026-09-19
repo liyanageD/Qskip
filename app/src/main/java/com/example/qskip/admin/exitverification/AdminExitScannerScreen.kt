@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.presentation.scanner.CameraPermissionWrapper
 import com.example.qskip.presentation.scanner.CameraPreview
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +87,41 @@ fun AdminExitScannerScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
+                    if (uiState.isAlreadyProcessed) {
+                        val token = uiState.scannedToken
+                        val scanTime = (order.verifiedAt ?: token?.verifiedAt)?.let {
+                            SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date(it))
+                        } ?: "N/A"
+                        val verifier = order.verifiedBy ?: token?.verifiedBy ?: "Staff"
+                        val isFlagged = order.exitStatus == "FLAGGED" || token?.status == "FLAGGED"
+                        val resultText = if (isFlagged) "REJECTED / FLAGGED" else "CONFIRMED / VERIFIED"
+                        val reason = order.flaggedReason ?: token?.flaggedReason
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isFlagged) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    "Exit QR Already Processed",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isFlagged) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Previous Scan Result: $resultText", fontWeight = FontWeight.Bold)
+                                Text("Previous Scan Time: $scanTime", style = MaterialTheme.typography.bodySmall)
+                                Text("Previous Verifier: $verifier", style = MaterialTheme.typography.bodySmall)
+                                if (!reason.isNullOrBlank()) {
+                                    Text("Flag Reason: $reason", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
@@ -97,6 +135,7 @@ fun AdminExitScannerScreen(
                             Text("ORDER BILL TOTAL", style = MaterialTheme.typography.labelMedium)
                             Text("Rs. ${order.total}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             Text("Order #${order.orderId}", style = MaterialTheme.typography.bodyMedium)
+                            Text("Payment: ${order.paymentStatus}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -154,6 +193,13 @@ fun AdminExitScannerScreen(
                         ) {
                             Text("Scan Next Customer")
                         }
+                    } else if (uiState.isAlreadyProcessed) {
+                        Button(
+                            onClick = viewModel::resetScannerState,
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
+                        ) {
+                            Text("Scan Next Customer")
+                        }
                     } else {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -172,7 +218,7 @@ fun AdminExitScannerScreen(
                                 modifier = Modifier.weight(1f).height(50.dp),
                                 enabled = !uiState.isLoading
                             ) {
-                                Text("VERIFY EXIT")
+                                Text("Confirm Exit")
                             }
                         }
                     }
@@ -182,7 +228,7 @@ fun AdminExitScannerScreen(
             if (uiState.showFlagDialog) {
                 AlertDialog(
                     onDismissRequest = { viewModel.setShowFlagDialog(false) },
-                    title = { Text("Flag Order Exit") },
+                    title = { Text("Flag / Reject Order Exit") },
                     text = {
                         OutlinedTextField(
                             value = uiState.flagReason,
@@ -192,8 +238,11 @@ fun AdminExitScannerScreen(
                         )
                     },
                     confirmButton = {
-                        Button(onClick = viewModel::flagExit) {
-                            Text("Confirm Flag")
+                        Button(
+                            onClick = viewModel::flagExit,
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Confirm Reject")
                         }
                     },
                     dismissButton = {
