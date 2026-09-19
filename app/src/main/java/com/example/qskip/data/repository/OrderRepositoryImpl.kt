@@ -76,9 +76,6 @@ class OrderRepositoryImpl @Inject constructor(
                 if (token.status == "VERIFIED") {
                     throw Exception("Exit QR already used.")
                 }
-                if (token.status == "EXPIRED" || System.currentTimeMillis() > token.expiresAt) {
-                    throw Exception("Exit QR has expired.")
-                }
 
                 val orderRef = firestore.collection("orders").document(token.orderId)
                 val orderSnapshot = transaction.get(orderRef)
@@ -89,10 +86,12 @@ class OrderRepositoryImpl @Inject constructor(
                     throw Exception("Payment not completed for this order.")
                 }
 
+                val now = System.currentTimeMillis()
+
                 // Mark Token as VERIFIED
                 transaction.update(tokenRef, mapOf(
                     "status" to "VERIFIED",
-                    "verifiedAt" to System.currentTimeMillis(),
+                    "verifiedAt" to now,
                     "verifiedBy" to staffId
                 ))
 
@@ -100,7 +99,7 @@ class OrderRepositoryImpl @Inject constructor(
                 transaction.update(orderRef, mapOf(
                     "exitStatus" to "VERIFIED",
                     "orderStatus" to "COMPLETED",
-                    "verifiedAt" to System.currentTimeMillis(),
+                    "verifiedAt" to now,
                     "verifiedBy" to staffId
                 ))
             }.await()
@@ -112,17 +111,30 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun flagExit(tokenId: String, staffId: String, reason: String): Result<Unit> {
         return try {
-            val tokenSnapshot = firestore.collection("exitTokens").document(tokenId).get().await()
-            val token = tokenSnapshot.toObject(ExitToken::class.java)
-                ?: return Result.failure(Exception("Invalid token"))
-
-            val orderRef = firestore.collection("orders").document(token.orderId)
             firestore.runTransaction { transaction ->
+                val tokenRef = firestore.collection("exitTokens").document(tokenId)
+                val tokenSnapshot = transaction.get(tokenRef)
+                val token = tokenSnapshot.toObject(ExitToken::class.java)
+                    ?: throw Exception("Invalid token")
+
+                val orderRef = firestore.collection("orders").document(token.orderId)
+                val orderSnapshot = transaction.get(orderRef)
+
+                val now = System.currentTimeMillis()
+
+                transaction.update(tokenRef, mapOf(
+                    "status" to "FLAGGED",
+                    "verifiedAt" to now,
+                    "verifiedBy" to staffId,
+                    "flaggedReason" to reason
+                ))
+
                 transaction.update(orderRef, mapOf(
                     "exitStatus" to "FLAGGED",
+                    "orderStatus" to "FLAGGED",
                     "flaggedReason" to reason,
-                    "flaggedBy" to staffId,
-                    "flaggedAt" to System.currentTimeMillis()
+                    "verifiedBy" to staffId,
+                    "verifiedAt" to now
                 ))
             }.await()
             Result.success(Unit)
