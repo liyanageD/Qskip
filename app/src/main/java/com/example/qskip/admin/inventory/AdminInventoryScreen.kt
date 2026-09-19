@@ -2,6 +2,7 @@ package com.example.qskip.admin.inventory
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,12 +12,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -201,7 +202,7 @@ fun InventoryItemCard(
                         onClick = { onUpdateStock(maxOf(0, product.stockQuantity - 1)) },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(Icons.Default.Clear, contentDescription = "Decrease", modifier = Modifier.size(18.dp))
+                        MinusIcon(tint = MaterialTheme.colorScheme.onSurface)
                     }
 
                     StockInputField(
@@ -225,6 +226,19 @@ fun InventoryItemCard(
             }
         }
     }
+}
+
+@Composable
+fun MinusIcon(
+    modifier: Modifier = Modifier,
+    tint: Color = MaterialTheme.colorScheme.onSurface
+) {
+    Box(
+        modifier = modifier
+            .width(14.dp)
+            .height(2.5.dp)
+            .background(tint, shape = RoundedCornerShape(1.dp))
+    )
 }
 
 @Composable
