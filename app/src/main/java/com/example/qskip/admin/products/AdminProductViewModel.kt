@@ -35,22 +35,16 @@ class AdminProductViewModel @Inject constructor(
     val uiState: StateFlow<AdminProductUiState> = _uiState.asStateFlow()
 
     init {
-        loadProducts()
+        observeProducts()
     }
 
-    fun loadProducts() {
+    private fun observeProducts() {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            val result = productRepository.getProducts()
-            if (result.isSuccess) {
+            productRepository.getProductsFlow().collect { products ->
                 _uiState.value = _uiState.value.copy(
-                    products = result.getOrDefault(emptyList()),
+                    products = products,
                     isLoading = false
-                )
-            } else {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = result.exceptionOrNull()?.message ?: "Failed to load products"
                 )
             }
         }
@@ -136,7 +130,6 @@ class AdminProductViewModel @Inject constructor(
                     isSaveSuccess = true,
                     successMessage = msg
                 )
-                loadProducts()
             } else {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -155,7 +148,6 @@ class AdminProductViewModel @Inject constructor(
                     isLoading = false,
                     successMessage = "Product deactivated successfully"
                 )
-                loadProducts()
             } else {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,

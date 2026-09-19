@@ -3,6 +3,9 @@ package com.example.qskip.data.repository
 import com.example.qskip.domain.model.Product
 import com.example.qskip.domain.repository.ProductRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -11,6 +14,23 @@ import javax.inject.Singleton
 class ProductRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ProductRepository {
+
+    override fun getProductsFlow(): Flow<List<Product>> = callbackFlow {
+        val listener = firestore.collection("products")
+            .whereEqualTo("active", true)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    return@addSnapshotListener
+                }
+                val products = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(Product::class.java)?.let { p ->
+                        if (p.productId.isBlank()) p.copy(productId = doc.id) else p
+                    }
+                } ?: emptyList()
+                trySend(products)
+            }
+        awaitClose { listener.remove() }
+    }
 
     override suspend fun getProducts(): Result<List<Product>> {
         return try {

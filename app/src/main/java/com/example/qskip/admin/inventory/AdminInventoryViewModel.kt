@@ -30,22 +30,16 @@ class AdminInventoryViewModel @Inject constructor(
     val uiState: StateFlow<AdminInventoryUiState> = _uiState.asStateFlow()
 
     init {
-        loadInventory()
+        observeInventory()
     }
 
-    fun loadInventory() {
+    private fun observeInventory() {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            val productsResult = productRepository.getProducts()
-            if (productsResult.isSuccess) {
+            productRepository.getProductsFlow().collect { products ->
                 _uiState.value = _uiState.value.copy(
-                    products = productsResult.getOrDefault(emptyList()),
+                    products = products,
                     isLoading = false
-                )
-            } else {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = productsResult.exceptionOrNull()?.message ?: "Failed to load inventory"
                 )
             }
         }
@@ -81,7 +75,6 @@ class AdminInventoryViewModel @Inject constructor(
                     isLoading = false,
                     successMessage = "Stock updated successfully"
                 )
-                loadInventory()
             } else {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,

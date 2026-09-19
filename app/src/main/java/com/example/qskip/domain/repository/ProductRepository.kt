@@ -1,8 +1,10 @@
 package com.example.qskip.domain.repository
 
 import com.example.qskip.domain.model.Product
+import kotlinx.coroutines.flow.Flow
 
 interface ProductRepository {
+    fun getProductsFlow(): Flow<List<Product>>
     suspend fun getProducts(): Result<List<Product>>
     suspend fun getProductById(productId: String): Result<Product>
     suspend fun getProductByCode(productCode: String): Result<Product>
