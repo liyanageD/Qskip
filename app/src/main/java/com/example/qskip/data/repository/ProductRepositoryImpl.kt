@@ -127,14 +127,27 @@ class ProductRepositoryImpl @Inject constructor(
 
     override suspend fun saveProduct(product: Product): Result<Unit> {
         return try {
-            val productId = if (product.productId.isBlank()) {
+            val isNewProduct = product.productId.isBlank()
+            val productId = if (isNewProduct) {
                 firestore.collection("products").document().id
             } else {
                 product.productId
             }
 
+            val finalProductCode = if (isNewProduct) {
+                ensureUniqueProductCode(product.productCode)
+            } else {
+                val existingSnap = firestore.collection("products").document(productId).get().await()
+                if (existingSnap.exists()) {
+                    existingSnap.getString("productCode") ?: product.productCode
+                } else {
+                    product.productCode
+                }
+            }
+
             val updatedProduct = product.copy(
                 productId = productId,
+                productCode = finalProductCode,
                 updatedAt = System.currentTimeMillis(),
                 createdAt = if (product.createdAt == 0L) System.currentTimeMillis() else product.createdAt
             )
@@ -143,6 +156,26 @@ class ProductRepositoryImpl @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    private suspend fun ensureUniqueProductCode(baseCode: String): String {
+        var candidateCode = baseCode.ifBlank { "QSK-ITEM" }
+        var counter = 1
+
+        while (true) {
+            val checkSnap = firestore.collection("products")
+                .whereEqualTo("productCode", candidateCode)
+                .limit(1)
+                .get()
+                .await()
+
+            if (checkSnap.isEmpty) {
+                return candidateCode
+            }
+
+            counter++
+            candidateCode = "$baseCode-$counter"
         }
     }
 
