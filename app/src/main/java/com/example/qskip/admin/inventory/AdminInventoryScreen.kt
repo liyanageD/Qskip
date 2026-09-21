@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.domain.model.Product
+import com.example.qskip.presentation.components.MinusIcon
 import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -229,18 +230,7 @@ fun InventoryItemCard(
     }
 }
 
-@Composable
-fun MinusIcon(
-    modifier: Modifier = Modifier,
-    tint: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Box(
-        modifier = modifier
-            .width(14.dp)
-            .height(2.5.dp)
-            .background(tint, shape = RoundedCornerShape(1.dp))
-    )
-}
+
 
 @Composable
 fun StockInputField(

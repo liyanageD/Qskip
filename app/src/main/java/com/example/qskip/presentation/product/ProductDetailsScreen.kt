@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.qskip.presentation.components.MinusIcon
 import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -215,7 +216,7 @@ fun ProductDetailsScreen(
                                     modifier = Modifier.size(32.dp),
                                     enabled = uiState.selectedQuantity > 1
                                 ) {
-                                    Icon(Icons.Default.Clear, contentDescription = "Decrease", modifier = Modifier.size(16.dp))
+                                    MinusIcon(tint = if (uiState.selectedQuantity > 1) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline)
                                 }
                                 Text(
                                     text = uiState.selectedQuantity.toString(),
