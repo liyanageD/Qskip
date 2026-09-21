@@ -287,7 +287,7 @@ fun CartItemCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Rs. ${item.unitPrice}",
+                        text = "Rs. ${item.unitPrice.toCurrency()}",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold

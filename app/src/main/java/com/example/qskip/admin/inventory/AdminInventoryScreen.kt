@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.domain.model.Product
+import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -166,7 +167,7 @@ fun InventoryItemCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(product.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text("Code: ${product.productCode} • ${product.size} / ${product.color}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Code: ${product.productCode} • ${product.size} / ${product.color} • Rs. ${product.price.toCurrency()}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
                 Surface(

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,7 +72,7 @@ fun CheckoutScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text("Processing...")
                             } else {
-                                Text("Pay Rs. ${it.total}", style = MaterialTheme.typography.titleMedium)
+                                Text("Pay Rs. ${it.total.toCurrency()}", style = MaterialTheme.typography.titleMedium)
                             }
                         }
                     }
@@ -129,7 +130,7 @@ fun CheckoutScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text("${item.quantity}x ${item.name} (${item.size}, ${item.color})", modifier = Modifier.weight(1f))
-                                    Text("Rs. ${item.subtotal}", fontWeight = FontWeight.SemiBold)
+                                    Text("Rs. ${item.subtotal.toCurrency()}", fontWeight = FontWeight.SemiBold)
                                 }
                             }
                             
@@ -137,7 +138,7 @@ fun CheckoutScreen(
                             
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("Total", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text("Rs. ${order.total}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                Text("Rs. ${order.total.toCurrency()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -168,7 +169,7 @@ fun CheckoutScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
                                     Text("Available Points: ${uiState.availableRewardPoints}", fontWeight = FontWeight.Bold)
-                                    Text("1 point = Rs. 0.5 discount", style = MaterialTheme.typography.bodySmall)
+                                    Text("1 point = Rs. 0.50 discount", style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                             

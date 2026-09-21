@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +75,7 @@ fun BudgetScreen(
                     ) {
                         Text("Current Budget", style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            text = if (uiState.budget > 0) "Rs. ${uiState.budget}" else "Not Set",
+                            text = if (uiState.budget > 0) "Rs. ${uiState.budget.toCurrency()}" else "Not Set",
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -86,7 +87,7 @@ fun BudgetScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("Current Cart Total", style = MaterialTheme.typography.bodyMedium)
-                        Text("Rs. ${uiState.cartTotal}", fontWeight = FontWeight.Bold)
+                        Text("Rs. ${uiState.cartTotal.toCurrency()}", fontWeight = FontWeight.Bold)
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -101,7 +102,7 @@ fun BudgetScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text("Remaining", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text("Rs. $diff", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                Text("Rs. ${diff.toCurrency()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
                         } else {
                             Row(
@@ -114,7 +115,7 @@ fun BudgetScreen(
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text("Over Budget By", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
                                 }
-                                Text("Rs. ${-diff}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                                Text("Rs. ${(-diff).toCurrency()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
                             }
                         }
                     }

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.presentation.scanner.CameraPermissionWrapper
 import com.example.qskip.presentation.scanner.CameraPreview
+import com.example.qskip.utils.toCurrency
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -133,7 +134,7 @@ fun AdminExitScannerScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text("ORDER BILL TOTAL", style = MaterialTheme.typography.labelMedium)
-                            Text("Rs. ${order.total}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            Text("Rs. ${order.total.toCurrency()}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             Text("Order #${order.orderId}", style = MaterialTheme.typography.bodyMedium)
                             Text("Payment: ${order.paymentStatus}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                         }

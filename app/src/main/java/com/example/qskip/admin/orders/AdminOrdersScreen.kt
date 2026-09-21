@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.domain.model.Order
+import com.example.qskip.utils.toCurrency
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -161,7 +162,7 @@ fun AdminOrderCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("${item.quantity}x ${item.name} (${item.size}/${item.color})", style = MaterialTheme.typography.bodyMedium)
-                    Text("Rs. ${item.subtotal}", style = MaterialTheme.typography.bodyMedium)
+                    Text("Rs. ${item.subtotal.toCurrency()}", style = MaterialTheme.typography.bodyMedium)
                 }
             }
 
@@ -171,7 +172,7 @@ fun AdminOrderCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("Total Paid", fontWeight = FontWeight.Bold)
-                Text("Rs. ${order.total}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text("Rs. ${order.total.toCurrency()}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
         }
     }

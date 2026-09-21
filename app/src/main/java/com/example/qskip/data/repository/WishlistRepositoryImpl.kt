@@ -61,7 +61,7 @@ class WishlistRepositoryImpl @Inject constructor(
                 productId = product.productId,
                 name = product.name,
                 categoryId = product.categoryId,
-                basePrice = product.price,
+                price = product.price,
                 imageUrl = product.imageUrls.firstOrNull(),
                 active = product.active,
                 addedAt = System.currentTimeMillis()

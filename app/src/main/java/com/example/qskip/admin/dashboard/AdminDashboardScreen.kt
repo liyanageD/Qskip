@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.domain.model.Order
+import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,7 +94,7 @@ fun AdminDashboardScreen(
             ) {
                 MetricCard(
                     title = "Today Sales",
-                    value = "Rs. ${uiState.todaySales.toInt()}",
+                    value = "Rs. ${uiState.todaySales.toCurrency()}",
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
@@ -306,7 +307,7 @@ fun RecentOrderRow(order: Order) {
                 Text("#${order.orderId}", fontWeight = FontWeight.Bold)
                 Text("${order.items.size} item(s)", style = MaterialTheme.typography.bodySmall)
             }
-            Text("Rs. ${order.total}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Text("Rs. ${order.total.toCurrency()}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         }
     }
 }

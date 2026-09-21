@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.qskip.domain.model.WishlistItem
+import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,7 +164,7 @@ fun WishlistCard(
                     )
                 } else {
                     Text(
-                        text = "Rs. ${item.basePrice}",
+                        text = "Rs. ${item.price.toCurrency()}",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold

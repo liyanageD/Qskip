@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.domain.model.User
+import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,7 +126,7 @@ fun CustomerRow(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Rewards: ${customer.rewardPoints} pts | Budget: Rs. ${customer.budget.toInt()}", style = MaterialTheme.typography.bodySmall)
+                Text("Rewards: ${customer.rewardPoints} pts | Budget: Rs. ${customer.budget.toCurrency()}", style = MaterialTheme.typography.bodySmall)
 
                 if (customer.role == "CUSTOMER") {
                     TextButton(onClick = onToggleStatus) {

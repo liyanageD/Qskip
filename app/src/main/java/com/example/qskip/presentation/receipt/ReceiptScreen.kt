@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.presentation.exit.ExitQrViewModel
+import com.example.qskip.utils.toCurrency
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -108,7 +109,7 @@ fun ReceiptScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text("${item.quantity}x ${item.name} (${item.size}, ${item.color})", modifier = Modifier.weight(1f))
-                                        Text("Rs. ${item.subtotal}", fontWeight = FontWeight.SemiBold)
+                                        Text("Rs. ${item.subtotal.toCurrency()}", fontWeight = FontWeight.SemiBold)
                                     }
                                 }
 
@@ -116,18 +117,18 @@ fun ReceiptScreen(
 
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Text("Subtotal")
-                                    Text("Rs. ${order.subtotal}")
+                                    Text("Rs. ${order.subtotal.toCurrency()}")
                                 }
                                 if (order.discount > 0) {
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                         Text("Discount")
-                                        Text("- Rs. ${order.discount}")
+                                        Text("- Rs. ${order.discount.toCurrency()}")
                                     }
                                 }
                                 if (order.rewardDiscount > 0) {
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                         Text("Rewards Applied")
-                                        Text("- Rs. ${order.rewardDiscount}")
+                                        Text("- Rs. ${order.rewardDiscount.toCurrency()}")
                                     }
                                 }
 
@@ -135,7 +136,7 @@ fun ReceiptScreen(
 
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Text("Total Paid", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                                    Text("Rs. ${order.total}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                    Text("Rs. ${order.total.toCurrency()}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         }

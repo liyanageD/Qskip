@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.domain.model.Order
+import com.example.qskip.utils.toCurrency
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -147,7 +148,7 @@ fun OrderCard(
             ) {
                 Text("Total Paid", style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    text = "Rs. ${order.total}",
+                    text = "Rs. ${order.total.toCurrency()}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary

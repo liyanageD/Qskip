@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.qskip.domain.model.Product
 import com.example.qskip.utils.QrDownloadUtil
+import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -236,7 +237,7 @@ fun AdminProductCard(
                     Text(product.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text("Code: ${product.productCode}", style = MaterialTheme.typography.bodySmall)
                     Text("${product.size} • ${product.color} • Stock: ${product.stockQuantity}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Rs. ${product.price}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    Text("Rs. ${product.price.toCurrency()}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }
 
