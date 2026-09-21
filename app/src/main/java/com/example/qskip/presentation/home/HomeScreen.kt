@@ -197,102 +197,108 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Shopping Budget Card
-            Box(
+            // Shopping Budget Card (Unified Single Surface)
+            val isExceeded = uiState.budget > 0 && uiState.cartTotal > uiState.budget
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
+                    .clickable { onNavigateToBudget() },
+                shape = RoundedCornerShape(16.dp),
+                color = if (isExceeded) {
+                    MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f)
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                }
             ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigateToBudget() },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (uiState.budget > 0 && uiState.cartTotal > uiState.budget) {
-                            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            MoneyIcon(
+                                size = 22.dp,
+                                tint = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Shopping Budget",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isExceeded) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                        TextButton(
+                            onClick = onNavigateToBudget,
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                        ) {
+                            Text(
+                                text = if (uiState.budget > 0) "Manage" else "Set Budget",
+                                fontWeight = FontWeight.Bold,
+                                color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (uiState.budget > 0) {
+                        val diff = uiState.budget - uiState.cartTotal
+                        val progress = (uiState.cartTotal / uiState.budget).toFloat().coerceIn(0.0f, 1.0f)
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                MoneyIcon(
-                                    size = 22.dp,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
+                            Column {
                                 Text(
-                                    text = "Shopping Budget",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
+                                    text = "Spent",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (isExceeded) MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "Rs. ${uiState.cartTotal.toCurrency()}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isExceeded) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurface
                                 )
                             }
-                            TextButton(
-                                onClick = onNavigateToBudget,
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
-                            ) {
-                                Text(if (uiState.budget > 0) "Manage" else "Set Budget", fontWeight = FontWeight.Bold)
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = if (isExceeded) "Exceeded By" else "Remaining",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "Rs. ${(if (isExceeded) -diff else diff).toCurrency()}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                        if (uiState.budget > 0) {
-                            val diff = uiState.budget - uiState.cartTotal
-                            val progress = (uiState.cartTotal / uiState.budget).toFloat().coerceIn(0.0f, 1.0f)
-                            val isExceeded = diff < 0
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text("Spent", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("Rs. ${uiState.cartTotal.toCurrency()}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                                }
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text(
-                                        text = if (isExceeded) "Exceeded By" else "Remaining",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "Rs. ${(if (isExceeded) -diff else diff).toCurrency()}",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            // Usage Progress Bar
-                            LinearProgressIndicator(
-                                progress = { progress },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp)
-                                    .clip(RoundedCornerShape(4.dp)),
-                                color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                            )
-                        } else {
-                            Text(
-                                text = "No budget set for this shopping session.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        // Usage Progress Bar
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            trackColor = if (isExceeded) MaterialTheme.colorScheme.error.copy(alpha = 0.15f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                        )
+                    } else {
+                        Text(
+                            text = "No budget set for this shopping session.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -410,7 +416,7 @@ fun FlyersCarousel(
         pageCount = { itemCount }
     )
 
-    // Controlled auto-scroll loop keyed on (flyers, itemCount)
+    // Controlled auto-scroll loop
     LaunchedEffect(flyers, itemCount) {
         if (itemCount > 1) {
             while (true) {
