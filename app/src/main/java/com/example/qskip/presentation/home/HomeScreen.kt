@@ -1,12 +1,17 @@
 package com.example.qskip.presentation.home
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -31,6 +36,7 @@ import com.example.qskip.domain.model.Flyer
 import com.example.qskip.domain.model.Product
 import com.example.qskip.presentation.components.*
 import com.example.qskip.utils.toCurrency
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,16 +94,9 @@ fun HomeScreen(
                 )
             }
 
-            // Active Banner Flyers Carousel
+            // Active Banner Flyers Auto-Scrolling Carousel
             if (uiState.activeFlyers.isNotEmpty()) {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(uiState.activeFlyers) { flyer ->
-                        FlyerBannerCard(flyer = flyer)
-                    }
-                }
+                FlyersCarousel(flyers = uiState.activeFlyers)
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
@@ -357,58 +356,150 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FlyerBannerCard(flyer: Flyer) {
-    Card(
-        modifier = Modifier
-            .width(320.dp)
-            .height(150.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (flyer.imageUrl.isNotBlank()) {
-                AsyncImage(
-                    model = flyer.imageUrl,
-                    contentDescription = flyer.title,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.45f))
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                )
-            }
+fun FlyersCarousel(
+    flyers: List<Flyer>,
+    modifier: Modifier = Modifier
+) {
+    if (flyers.isEmpty()) return
 
-            Column(
+    val itemCount = flyers.size
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { itemCount }
+    )
+
+    // Controlled auto-scroll loop keyed on (flyers, itemCount)
+    LaunchedEffect(flyers, itemCount) {
+        if (itemCount > 1) {
+            while (true) {
+                delay(4000L) // Auto-advance every 4 seconds
+                if (!pagerState.isScrollInProgress) {
+                    val targetPage = (pagerState.currentPage + 1) % itemCount
+                    try {
+                        pagerState.animateScrollToPage(
+                            page = targetPage,
+                            animationSpec = tween(
+                                durationMillis = 700,
+                                easing = FastOutSlowInEasing
+                            )
+                        )
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(170.dp)
+                .clip(RoundedCornerShape(20.dp))
+        ) { page ->
+            val flyer = flyers[page]
+
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Bottom
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                if (flyer.title.isNotBlank()) {
-                    Text(
-                        text = flyer.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                if (flyer.imageUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = flyer.imageUrl,
+                        contentDescription = flyer.title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.45f))
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     )
                 }
-                if (flyer.subtitle.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = flyer.subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.9f)
-                    )
+
+                // Flyer Text Content
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    if (flyer.title.isNotBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color.White.copy(alpha = 0.25f)
+                        ) {
+                            Text(
+                                text = "SPECIAL OFFER",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = flyer.title,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    if (flyer.subtitle.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = flyer.subtitle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.9f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+        }
+
+        // Bottom-Right Pagination Dots Indicator (Matching Reference Image)
+        if (itemCount > 1) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color.Black.copy(alpha = 0.45f),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(itemCount) { index ->
+                        val isSelected = index == pagerState.currentPage
+                        Box(
+                            modifier = Modifier
+                                .height(6.dp)
+                                .width(if (isSelected) 18.dp else 6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(if (isSelected) Color.White else Color.White.copy(alpha = 0.4f))
+                        )
+                    }
                 }
             }
         }
@@ -493,7 +584,7 @@ fun HomeProductCard(
                 Text(
                     text = product.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
