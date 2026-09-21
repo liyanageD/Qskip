@@ -122,16 +122,25 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Shopping Budget Card (Requirement 28)
+            // Shopping Budget Card (Redesigned Modern UI)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
                 Card(
-                    modifier = Modifier.fillMaxWidth().clickable { onNavigateToBudget() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToBudget() },
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (uiState.budget > 0 && uiState.cartTotal > uiState.budget) {
+                            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        }
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -139,29 +148,77 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("SHOPPING BUDGET", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                            TextButton(onClick = onNavigateToBudget) {
-                                Text(if (uiState.budget > 0) "Manage" else "Set Budget")
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Shopping Budget",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Shopping Budget",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            TextButton(
+                                onClick = onNavigateToBudget,
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                            ) {
+                                Text(if (uiState.budget > 0) "Manage" else "Set Budget", fontWeight = FontWeight.Bold)
                             }
                         }
 
+                        Spacer(modifier = Modifier.height(8.dp))
+
                         if (uiState.budget > 0) {
                             val diff = uiState.budget - uiState.cartTotal
+                            val progress = (uiState.cartTotal / uiState.budget).toFloat().coerceIn(0.0f, 1.0f)
+                            val isExceeded = diff < 0
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Budget: Rs. ${uiState.budget.toCurrency()}", style = MaterialTheme.typography.bodyMedium)
-                                Text("Spent: Rs. ${uiState.cartTotal.toCurrency()}", style = MaterialTheme.typography.bodyMedium)
+                                Column {
+                                    Text("Spent", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text("Rs. ${uiState.cartTotal.toCurrency()}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        text = if (isExceeded) "Exceeded By" else "Remaining",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "Rs. ${(if (isExceeded) -diff else diff).toCurrency()}",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            if (diff >= 0) {
-                                Text("Remaining: Rs. ${diff.toCurrency()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                            } else {
-                                Text("Over by: Rs. ${(-diff).toCurrency()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
-                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Usage Progress Bar
+                            LinearProgressIndicator(
+                                progress = { progress },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp)),
+                                color = if (isExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                            )
                         } else {
-                            Text("No budget set for this shopping session.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "No budget set for this shopping session.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
@@ -188,49 +245,49 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Section: Recommended Products
-            Text(
-                text = "Recommended for you",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
+            // Recommended Products
+            Column {
+                PaddingValues(horizontal = 16.dp).let { padding ->
+                    Text(
+                        text = "Recommended for you",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
 
-            if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else if (uiState.error != null) {
-                Box(modifier = Modifier.fillMaxWidth().height(150.dp).padding(16.dp), contentAlignment = Alignment.Center) {
-                    Text(text = uiState.error ?: "Error loading products", color = MaterialTheme.colorScheme.error)
-                }
-            } else if (uiState.recommendedProducts.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth().height(150.dp).padding(16.dp), contentAlignment = Alignment.Center) {
-                    Text(text = "No recommendations available right now.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(uiState.recommendedProducts) { product ->
-                        ProductCard(
-                            product = product,
-                            onClick = { onNavigateToProduct(product.productId) }
-                        )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (uiState.isLoading && uiState.recommendedProducts.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else if (uiState.recommendedProducts.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                        Text(text = "No recommendations available right now.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(uiState.recommendedProducts) { product ->
+                            HomeProductCard(
+                                product = product,
+                                onClick = { onNavigateToProduct(product.productId) }
+                            )
+                        }
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
-fun ProductCard(
+fun HomeProductCard(
     product: Product,
     onClick: () -> Unit
 ) {
@@ -238,7 +295,7 @@ fun ProductCard(
         modifier = Modifier
             .width(160.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -251,7 +308,7 @@ fun ProductCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(160.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                     contentScale = ContentScale.Crop
                 )
             } else {
@@ -259,7 +316,7 @@ fun ProductCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(160.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("No Image")
