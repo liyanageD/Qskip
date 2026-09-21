@@ -116,6 +116,55 @@ fun WalletIcon(
 }
 
 @Composable
+fun MoneyIcon(
+    modifier: Modifier = Modifier,
+    size: Dp = 24.dp,
+    tint: Color = MaterialTheme.colorScheme.primary
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+
+        // Banknote Rectangle Body
+        drawRoundRect(
+            color = tint,
+            topLeft = Offset(0f, h * 0.2f),
+            size = Size(w, h * 0.6f),
+            cornerRadius = CornerRadius(w * 0.1f)
+        )
+
+        // Inner Currency Circle
+        drawCircle(
+            color = Color.White,
+            radius = w * 0.16f,
+            center = Offset(w * 0.5f, h * 0.5f)
+        )
+
+        // Corner circles
+        drawCircle(
+            color = Color.White.copy(alpha = 0.4f),
+            radius = w * 0.05f,
+            center = Offset(w * 0.15f, h * 0.35f)
+        )
+        drawCircle(
+            color = Color.White.copy(alpha = 0.4f),
+            radius = w * 0.05f,
+            center = Offset(w * 0.85f, h * 0.35f)
+        )
+        drawCircle(
+            color = Color.White.copy(alpha = 0.4f),
+            radius = w * 0.05f,
+            center = Offset(w * 0.15f, h * 0.65f)
+        )
+        drawCircle(
+            color = Color.White.copy(alpha = 0.4f),
+            radius = w * 0.05f,
+            center = Offset(w * 0.85f, h * 0.65f)
+        )
+    }
+}
+
+@Composable
 fun PriceTagIcon(
     modifier: Modifier = Modifier,
     size: Dp = 24.dp,

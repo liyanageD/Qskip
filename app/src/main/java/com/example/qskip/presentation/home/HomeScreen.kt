@@ -27,8 +27,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.qskip.R
 import com.example.qskip.domain.model.Product
+import com.example.qskip.presentation.components.MoneyIcon
 import com.example.qskip.presentation.components.QrScannerIcon
-import com.example.qskip.presentation.components.WalletIcon
 import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -150,7 +150,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                WalletIcon(
+                                MoneyIcon(
                                     size = 22.dp,
                                     tint = MaterialTheme.colorScheme.primary
                                 )
