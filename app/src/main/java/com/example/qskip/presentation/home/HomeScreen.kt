@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.qskip.R
 import com.example.qskip.domain.model.Product
+import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,14 +151,14 @@ fun HomeScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("Budget: Rs. ${uiState.budget.toInt()}", style = MaterialTheme.typography.bodyMedium)
-                                Text("Spent: Rs. ${uiState.cartTotal.toInt()}", style = MaterialTheme.typography.bodyMedium)
+                                Text("Budget: Rs. ${uiState.budget.toCurrency()}", style = MaterialTheme.typography.bodyMedium)
+                                Text("Spent: Rs. ${uiState.cartTotal.toCurrency()}", style = MaterialTheme.typography.bodyMedium)
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             if (diff >= 0) {
-                                Text("Remaining: Rs. ${diff.toInt()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                Text("Remaining: Rs. ${diff.toCurrency()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             } else {
-                                Text("Over by: Rs. ${(-diff).toInt()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                                Text("Over by: Rs. ${(-diff).toCurrency()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
                             }
                         } else {
                             Text("No budget set for this shopping session.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -281,7 +282,7 @@ fun ProductCard(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "Rs. ${product.price}",
+                    text = "Rs. ${product.price.toCurrency()}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold

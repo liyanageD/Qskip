@@ -4,6 +4,7 @@ import com.example.qskip.domain.model.User
 import com.example.qskip.domain.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -146,8 +147,10 @@ class AuthRepositoryImpl @Inject constructor(
         val uid = getCurrentUserId() ?: return Result.failure(Exception("Not logged in"))
         return try {
             firestore.collection("users").document(uid).update("budget", budget).await()
-            // Also sync to cart document for session consistency
-            firestore.collection("carts").document(uid).update("budget", budget).await()
+            // Sync to cart document safely with merge
+            firestore.collection("carts").document(uid)
+                .set(mapOf("budget" to budget, "userId" to uid), SetOptions.merge())
+                .await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

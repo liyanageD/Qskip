@@ -6,6 +6,7 @@ import com.example.qskip.domain.model.Product
 import com.example.qskip.domain.repository.CartRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -96,7 +97,7 @@ class CartRepositoryImpl @Inject constructor(
                     currentItems.add(newItem)
                 }
 
-                transaction.set(cartRef, cart.copy(items = currentItems))
+                transaction.set(cartRef, cart.copy(items = currentItems), SetOptions.merge())
             }.await()
             
             Result.success(Unit)
@@ -128,7 +129,7 @@ class CartRepositoryImpl @Inject constructor(
                             it.copy(quantity = quantity)
                         } else it
                     }
-                    transaction.update(cartRef, "items", updatedItems)
+                    transaction.set(cartRef, mapOf("items" to updatedItems), SetOptions.merge())
                 }
             }.await()
             Result.success(Unit)
@@ -148,7 +149,7 @@ class CartRepositoryImpl @Inject constructor(
                 if (snapshot.exists()) {
                     val cart = snapshot.toObject(Cart::class.java)!!
                     val updatedItems = cart.items.filterNot { it.productId == productId }
-                    transaction.update(cartRef, "items", updatedItems)
+                    transaction.set(cartRef, mapOf("items" to updatedItems), SetOptions.merge())
                 }
             }.await()
             Result.success(Unit)
@@ -160,7 +161,9 @@ class CartRepositoryImpl @Inject constructor(
     override suspend fun clearCart(): Result<Unit> {
         val userId = getUserId() ?: return Result.failure(Exception("User not authenticated"))
         return try {
-            firestore.collection("carts").document(userId).update("items", emptyList<CartItem>()).await()
+            firestore.collection("carts").document(userId)
+                .set(mapOf("items" to emptyList<CartItem>()), SetOptions.merge())
+                .await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -170,7 +173,9 @@ class CartRepositoryImpl @Inject constructor(
     override suspend fun setBudget(budget: Double): Result<Unit> {
         val userId = getUserId() ?: return Result.failure(Exception("User not authenticated"))
         return try {
-            firestore.collection("carts").document(userId).update("budget", budget).await()
+            firestore.collection("carts").document(userId)
+                .set(mapOf("budget" to budget, "userId" to userId), SetOptions.merge())
+                .await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

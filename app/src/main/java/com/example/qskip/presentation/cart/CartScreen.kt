@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.qskip.domain.model.CartItem
+import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +47,7 @@ fun CartScreen(
                 },
                 actions = {
                     TextButton(onClick = { viewModel.setShowBudgetDialog(true) }) {
-                        Text(if (cart.budget > 0) "Budget: Rs. ${cart.budget}" else "Set Budget")
+                        Text(if (cart.budget > 0) "Budget: Rs. ${cart.budget.toCurrency()}" else "Set Budget")
                     }
                 }
             )
@@ -69,7 +70,7 @@ fun CartScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text("Subtotal", style = MaterialTheme.typography.bodyLarge)
-                            Text("Rs. ${cart.subtotal}", style = MaterialTheme.typography.bodyLarge)
+                            Text("Rs. ${cart.subtotal.toCurrency()}", style = MaterialTheme.typography.bodyLarge)
                         }
                         
                         if (cart.discountTotal > 0) {
@@ -78,7 +79,7 @@ fun CartScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text("Discount", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
-                                Text("- Rs. ${cart.discountTotal}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+                                Text("- Rs. ${cart.discountTotal.toCurrency()}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
                             }
                         }
 
@@ -92,7 +93,7 @@ fun CartScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text("Total", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                            Text("Rs. ${cart.total}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                            Text("Rs. ${cart.total.toCurrency()}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         }
                         
                         if (cart.budget > 0 && cart.total > cart.budget) {
@@ -113,7 +114,7 @@ fun CartScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "You are over budget by Rs. ${cart.total - cart.budget}",
+                                        text = "You are over budget by Rs. ${(cart.total - cart.budget).toCurrency()}",
                                         color = MaterialTheme.colorScheme.onErrorContainer,
                                         style = MaterialTheme.typography.bodyMedium
                                     )
