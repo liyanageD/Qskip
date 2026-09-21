@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.example.qskip.presentation.components.MinusIcon
+import com.example.qskip.presentation.components.QuantitySelector
 import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -203,35 +203,13 @@ fun ProductDetailsScreen(
                             fontWeight = FontWeight.SemiBold
                         )
 
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                            ) {
-                                IconButton(
-                                    onClick = { viewModel.updateQuantity(uiState.selectedQuantity - 1) },
-                                    modifier = Modifier.size(32.dp),
-                                    enabled = uiState.selectedQuantity > 1
-                                ) {
-                                    MinusIcon(tint = if (uiState.selectedQuantity > 1) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline)
-                                }
-                                Text(
-                                    text = uiState.selectedQuantity.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding(horizontal = 8.dp)
-                                )
-                                IconButton(
-                                    onClick = { viewModel.updateQuantity(uiState.selectedQuantity + 1) },
-                                    modifier = Modifier.size(32.dp),
-                                    enabled = uiState.selectedQuantity < product.stockQuantity
-                                ) {
-                                    Icon(Icons.Default.Add, contentDescription = "Increase", modifier = Modifier.size(16.dp))
-                                }
-                            }
-                        }
+                        QuantitySelector(
+                            quantity = uiState.selectedQuantity,
+                            onIncrease = { viewModel.updateQuantity(uiState.selectedQuantity + 1) },
+                            onDecrease = { viewModel.updateQuantity(uiState.selectedQuantity - 1) },
+                            minQuantity = 1,
+                            maxQuantity = product.stockQuantity
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))

@@ -10,7 +10,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -23,6 +22,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.qskip.domain.model.Order
+import com.example.qskip.presentation.components.LoyaltyGiftIcon
+import com.example.qskip.presentation.components.PriceTagIcon
+import com.example.qskip.presentation.components.QrScannerIcon
 import com.example.qskip.utils.toCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +82,7 @@ fun AdminDashboardScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Search, contentDescription = "Exit Scanner", modifier = Modifier.size(32.dp))
+                    QrScannerIcon(size = 32.dp, tint = MaterialTheme.colorScheme.onPrimary)
                     Spacer(modifier = Modifier.width(12.dp))
                     Text("SCAN EXIT QR", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 }
@@ -177,21 +179,21 @@ fun AdminDashboardScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                AdminNavCard(
+                AdminNavCustomCard(
                     title = "Promotions",
-                    icon = Icons.Default.Star,
+                    icon = { PriceTagIcon(size = 32.dp) },
                     onClick = onNavigateToPromotions,
                     modifier = Modifier.weight(1f)
                 )
-                AdminNavCard(
+                AdminNavCustomCard(
                     title = "Reviews",
-                    icon = Icons.Default.Star,
+                    icon = { Icon(Icons.Default.Star, contentDescription = "Reviews", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp)) },
                     onClick = onNavigateToReviews,
                     modifier = Modifier.weight(1f)
                 )
-                AdminNavCard(
+                AdminNavCustomCard(
                     title = "Rewards",
-                    icon = Icons.Default.Star,
+                    icon = { LoyaltyGiftIcon(size = 32.dp) },
                     onClick = onNavigateToRewards,
                     modifier = Modifier.weight(1f)
                 )
@@ -259,6 +261,28 @@ fun AdminNavCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(icon, contentDescription = title, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@Composable
+fun AdminNavCustomCard(
+    title: String,
+    icon: @Composable () -> Unit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedCard(
+        modifier = modifier.clickable { onClick() },
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            icon()
             Spacer(modifier = Modifier.height(8.dp))
             Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
         }

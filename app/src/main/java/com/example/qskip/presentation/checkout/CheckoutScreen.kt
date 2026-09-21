@@ -21,7 +21,7 @@ import com.example.qskip.utils.toCurrency
 @Composable
 fun CheckoutScreen(
     onNavigateBack: () -> Unit,
-    onPaymentSuccess: () -> Unit, // Will navigate to Success/Exit QR
+    onPaymentSuccess: () -> Unit,
     viewModel: CheckoutViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -72,7 +72,7 @@ fun CheckoutScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text("Processing...")
                             } else {
-                                Text("Pay Rs. ${it.total.toCurrency()}", style = MaterialTheme.typography.titleMedium)
+                                Text("Pay Rs. ${it.total.toCurrency()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -108,10 +108,10 @@ fun CheckoutScreen(
                     }
                 }
 
-                // Order Summary Section
+                // Bill Summary Section
                 item {
                     Text(
-                        text = "Order Summary",
+                        text = "Bill Summary",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -135,10 +135,46 @@ fun CheckoutScreen(
                             }
                             
                             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Subtotal", style = MaterialTheme.typography.bodyMedium)
+                                Text("Rs. ${order.subtotal.toCurrency()}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                            }
+
+                            if (order.rewardDiscount > 0) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("Reward Points", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                    Text("- Rs. ${order.rewardDiscount.toCurrency()}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                }
+                            }
+
+                            if (order.discount > 0) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("Discount", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                    Text("- Rs. ${order.discount.toCurrency()}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                }
+                            }
                             
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Text("Total", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text("Rs. ${order.total.toCurrency()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                Text("Rs. ${order.total.toCurrency()}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
@@ -164,7 +200,7 @@ fun CheckoutScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                                 Icon(Icons.Default.Star, contentDescription = "Rewards", tint = MaterialTheme.colorScheme.primary)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
