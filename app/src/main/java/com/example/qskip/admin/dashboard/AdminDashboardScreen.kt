@@ -1,5 +1,7 @@
 package com.example.qskip.admin.dashboard
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,8 +45,15 @@ fun AdminDashboardScreen(
     onNavigateBack: () -> Unit,
     viewModel: AdminDashboardViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showExitDialog by remember { mutableStateOf(false) }
+
+    // Intercept system Back button gesture on Admin Dashboard
+    BackHandler {
+        showExitDialog = true
+    }
 
     Scaffold(
         topBar = {
@@ -249,6 +259,30 @@ fun AdminDashboardScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { showLogoutDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        // App Exit Confirmation Dialog
+        if (showExitDialog) {
+            AlertDialog(
+                onDismissRequest = { showExitDialog = false },
+                title = { Text("Exit Qskip?") },
+                text = { Text("Are you sure you want to exit the app?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showExitDialog = false
+                            (context as? Activity)?.finish()
+                        }
+                    ) {
+                        Text("Exit")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showExitDialog = false }) {
                         Text("Cancel")
                     }
                 }

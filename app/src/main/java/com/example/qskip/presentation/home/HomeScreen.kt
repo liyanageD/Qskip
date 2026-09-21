@@ -1,5 +1,7 @@
 package com.example.qskip.presentation.home
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -25,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,8 +52,15 @@ fun HomeScreen(
     onLogout: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    
+    var showExitDialog by remember { mutableStateOf(false) }
+
+    // Intercept system Back button gesture from Home
+    BackHandler {
+        showExitDialog = true
+    }
+
     if (!uiState.isUserLoggedIn) {
         onLogout() // Trigger navigation side-effect back to login if unauthenticated
     }
@@ -358,6 +368,30 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        // App Exit Confirmation Dialog
+        if (showExitDialog) {
+            AlertDialog(
+                onDismissRequest = { showExitDialog = false },
+                title = { Text("Exit Qskip?") },
+                text = { Text("Are you sure you want to exit the app?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showExitDialog = false
+                            (context as? Activity)?.finish()
+                        }
+                    ) {
+                        Text("Exit")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showExitDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
