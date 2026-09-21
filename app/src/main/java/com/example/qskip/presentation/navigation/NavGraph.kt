@@ -105,6 +105,9 @@ fun QskipNavGraph(
                 onNavigateToBudget = {
                     navController.navigate(Screen.Budget.route)
                 },
+                onNavigateToAdminPortal = {
+                    navController.navigate(Screen.AdminDashboard.route)
+                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
@@ -266,6 +269,9 @@ fun QskipNavGraph(
                 },
                 onNavigateToFlyers = {
                     navController.navigate(Screen.AdminFlyers.route)
+                },
+                onNavigateToCustomerHome = {
+                    navController.navigate(Screen.Home.route)
                 },
                 onAdminLogout = {
                     navController.navigate(Screen.Login.route) {

@@ -23,7 +23,8 @@ data class HomeUiState(
     val cartTotal: Double = 0.0,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isUserLoggedIn: Boolean = false
+    val isUserLoggedIn: Boolean = false,
+    val isAdmin: Boolean = false
 )
 
 @HiltViewModel
@@ -47,7 +48,10 @@ class HomeViewModel @Inject constructor(
     private fun loadBudgetData() {
         viewModelScope.launch {
             authRepository.getUserProfile().collect { user ->
-                _uiState.value = _uiState.value.copy(budget = user?.budget ?: 0.0)
+                _uiState.value = _uiState.value.copy(
+                    budget = user?.budget ?: 0.0,
+                    isAdmin = user?.role == "ADMIN"
+                )
             }
         }
         viewModelScope.launch {

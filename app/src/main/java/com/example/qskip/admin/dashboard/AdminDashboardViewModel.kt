@@ -2,7 +2,6 @@ package com.example.qskip.admin.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.qskip.data.repository.DataSeeder
 import com.example.qskip.domain.model.Order
 import com.example.qskip.domain.repository.AuthRepository
 import com.example.qskip.domain.repository.OrderRepository
@@ -28,8 +27,7 @@ data class AdminDashboardUiState(
 class AdminDashboardViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
     private val productRepository: ProductRepository,
-    private val authRepository: AuthRepository,
-    private val dataSeeder: DataSeeder
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminDashboardUiState())
@@ -60,21 +58,6 @@ class AdminDashboardViewModel @Inject constructor(
                     lowStockCount = lowStockTotal,
                     recentOrders = orders.take(5),
                     isLoading = false
-                )
-            }
-        }
-    }
-
-    fun seedData() {
-        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-        viewModelScope.launch {
-            val result = dataSeeder.seedSampleProducts()
-            if (result.isSuccess) {
-                loadDashboardData()
-            } else {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = result.exceptionOrNull()?.message ?: "Failed to seed data"
                 )
             }
         }

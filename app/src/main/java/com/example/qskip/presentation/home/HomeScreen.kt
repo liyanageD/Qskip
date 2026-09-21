@@ -45,6 +45,7 @@ fun HomeScreen(
     onNavigateToProduct: (String) -> Unit,
     onNavigateToOrders: () -> Unit,
     onNavigateToBudget: () -> Unit,
+    onNavigateToAdminPortal: () -> Unit = {},
     onLogout: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -66,6 +67,11 @@ fun HomeScreen(
                     )
                 },
                 actions = {
+                    if (uiState.isAdmin) {
+                        TextButton(onClick = onNavigateToAdminPortal) {
+                            Text("Admin Portal", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
                     IconButton(onClick = { viewModel.logout() }) {
                         Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
                     }

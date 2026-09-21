@@ -37,6 +37,7 @@ fun AdminDashboardScreen(
     onNavigateToPromotions: () -> Unit,
     onNavigateToRewards: () -> Unit,
     onNavigateToFlyers: () -> Unit = {},
+    onNavigateToCustomerHome: () -> Unit = {},
     onAdminLogout: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: AdminDashboardViewModel = hiltViewModel()
@@ -54,8 +55,12 @@ fun AdminDashboardScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = { viewModel.seedData() }) {
-                        Text("Seed Data", fontWeight = FontWeight.Bold)
+                    IconButton(onClick = onNavigateToCustomerHome) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Switch to Customer View",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                     IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(Icons.Default.ExitToApp, contentDescription = "Admin Logout", tint = MaterialTheme.colorScheme.error)
