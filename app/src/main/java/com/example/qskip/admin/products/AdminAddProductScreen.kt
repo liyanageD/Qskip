@@ -53,6 +53,7 @@ fun AdminAddProductScreen(
 
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
+    var categoryExpanded by remember { mutableStateOf(false) }
     var size by remember { mutableStateOf("") }
     var color by remember { mutableStateOf("") }
     var priceInput by remember { mutableStateOf("") }
@@ -62,6 +63,8 @@ fun AdminAddProductScreen(
     var existingImageUrls by remember { mutableStateOf<List<String>>(emptyList()) }
     var existingProductCode by remember { mutableStateOf("") }
     var validationError by remember { mutableStateOf<String?>(null) }
+
+    val categoryOptions = listOf("Men", "Women", "Kids", "Bags", "Other")
 
     val isEditMode = !productId.isNullOrBlank()
 
@@ -103,7 +106,17 @@ fun AdminAddProductScreen(
         uiState.editingProduct?.let { p ->
             name = p.name
             existingProductCode = p.productCode
-            category = p.categoryId
+            
+            // Map legacy or existing categories to fixed categories
+            val mappedCategory = when {
+                p.categoryId.equals("Men", ignoreCase = true) || p.categoryId.equals("T-Shirts", ignoreCase = true) || p.categoryId.equals("Jeans", ignoreCase = true) || p.categoryId.equals("Shirts", ignoreCase = true) -> "Men"
+                p.categoryId.equals("Women", ignoreCase = true) || p.categoryId.equals("Dresses", ignoreCase = true) || p.categoryId.equals("Skirts", ignoreCase = true) -> "Women"
+                p.categoryId.equals("Kids", ignoreCase = true) || p.categoryId.equals("Children", ignoreCase = true) -> "Kids"
+                p.categoryId.equals("Bags", ignoreCase = true) || p.categoryId.equals("Handbags", ignoreCase = true) -> "Bags"
+                else -> "Other"
+            }
+            category = mappedCategory
+
             size = p.size
             color = p.color
             priceInput = p.price.toString()
@@ -269,17 +282,38 @@ fun AdminAddProductScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = category,
-                onValueChange = {
-                    category = it
-                    validationError = null
-                },
-                label = { Text("Category *") },
-                placeholder = { Text("Enter category (e.g. T-Shirts, Jeans)") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            // Category Selection Dropdown (Men, Women, Kids, Bags, Other)
+            ExposedDropdownMenuBox(
+                expanded = categoryExpanded,
+                onExpandedChange = { categoryExpanded = !categoryExpanded },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = if (category.isNotBlank()) category else "Select Category *",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Category *") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = categoryExpanded,
+                    onDismissRequest = { categoryExpanded = false }
+                ) {
+                    categoryOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                category = option
+                                categoryExpanded = false
+                                validationError = null
+                            }
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 

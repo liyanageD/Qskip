@@ -10,12 +10,12 @@ import androidx.navigation.navArgument
 import com.example.qskip.admin.customers.AdminCustomersScreen
 import com.example.qskip.admin.dashboard.AdminDashboardScreen
 import com.example.qskip.admin.exitverification.AdminExitScannerScreen
+import com.example.qskip.admin.flyers.AdminFlyersScreen
 import com.example.qskip.admin.inventory.AdminInventoryScreen
 import com.example.qskip.admin.orders.AdminOrdersScreen
 import com.example.qskip.admin.products.AdminAddProductScreen
 import com.example.qskip.admin.products.AdminProductListScreen
 import com.example.qskip.admin.promotions.AdminPromotionsScreen
-import com.example.qskip.admin.reviews.AdminReviewsScreen
 import com.example.qskip.admin.rewards.AdminRewardsScreen
 import com.example.qskip.presentation.auth.AdminLoginScreen
 import com.example.qskip.presentation.auth.LoginScreen
@@ -261,11 +261,11 @@ fun QskipNavGraph(
                 onNavigateToPromotions = {
                     navController.navigate(Screen.AdminPromotions.route)
                 },
-                onNavigateToReviews = {
-                    navController.navigate(Screen.AdminReviews.route)
-                },
                 onNavigateToRewards = {
                     navController.navigate(Screen.AdminRewards.route)
+                },
+                onNavigateToFlyers = {
+                    navController.navigate(Screen.AdminFlyers.route)
                 },
                 onAdminLogout = {
                     navController.navigate(Screen.Login.route) {
@@ -356,16 +356,16 @@ fun QskipNavGraph(
             )
         }
 
-        composable(route = Screen.AdminReviews.route) {
-            AdminReviewsScreen(
+        composable(route = Screen.AdminRewards.route) {
+            AdminRewardsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 }
             )
         }
 
-        composable(route = Screen.AdminRewards.route) {
-            AdminRewardsScreen(
+        composable(route = Screen.AdminFlyers.route) {
+            AdminFlyersScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 }

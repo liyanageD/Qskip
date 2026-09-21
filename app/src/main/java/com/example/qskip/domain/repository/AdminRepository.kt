@@ -1,7 +1,7 @@
 package com.example.qskip.domain.repository
 
+import com.example.qskip.domain.model.Flyer
 import com.example.qskip.domain.model.Promotion
-import com.example.qskip.domain.model.Review
 import com.example.qskip.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
@@ -19,9 +19,11 @@ interface AdminRepository {
     suspend fun savePromotion(promotion: Promotion): Result<Unit>
     suspend fun togglePromotionStatus(promotionId: String, active: Boolean): Result<Unit>
     
-    fun getReviews(): Flow<List<Review>>
-    suspend fun toggleReviewVisibility(reviewId: String, active: Boolean): Result<Unit>
-    
     fun getRewardSettings(): Flow<RewardSettings>
     suspend fun saveRewardSettings(settings: RewardSettings): Result<Unit>
+
+    fun getFlyers(): Flow<List<Flyer>>
+    suspend fun saveFlyer(flyer: Flyer): Result<Unit>
+    suspend fun toggleFlyerStatus(flyerId: String, active: Boolean): Result<Unit>
+    suspend fun deleteFlyer(flyerId: String): Result<Unit>
 }

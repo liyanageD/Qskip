@@ -1,7 +1,7 @@
 package com.example.qskip.data.repository
 
+import com.example.qskip.domain.model.Flyer
 import com.example.qskip.domain.model.Promotion
-import com.example.qskip.domain.model.Review
 import com.example.qskip.domain.model.User
 import com.example.qskip.domain.repository.AdminRepository
 import com.example.qskip.domain.repository.RewardSettings
@@ -75,27 +75,6 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getReviews(): Flow<List<Review>> = callbackFlow {
-        val listener = firestore.collection("reviews")
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) return@addSnapshotListener
-                val reviews = snapshot?.toObjects(Review::class.java) ?: emptyList()
-                trySend(reviews)
-            }
-        awaitClose { listener.remove() }
-    }
-
-    override suspend fun toggleReviewVisibility(reviewId: String, active: Boolean): Result<Unit> {
-        return try {
-            firestore.collection("reviews").document(reviewId)
-                .update("active", active)
-                .await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
     override fun getRewardSettings(): Flow<RewardSettings> = callbackFlow {
         val listener = firestore.collection("appSettings").document("rewards")
             .addSnapshotListener { snapshot, error ->
@@ -109,6 +88,53 @@ class AdminRepositoryImpl @Inject constructor(
     override suspend fun saveRewardSettings(settings: RewardSettings): Result<Unit> {
         return try {
             firestore.collection("appSettings").document("rewards").set(settings).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun getFlyers(): Flow<List<Flyer>> = callbackFlow {
+        val listener = firestore.collection("flyers")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+                val flyers = snapshot?.toObjects(Flyer::class.java) ?: emptyList()
+                trySend(flyers.sortedBy { it.displayOrder })
+            }
+        awaitClose { listener.remove() }
+    }
+
+    override suspend fun saveFlyer(flyer: Flyer): Result<Unit> {
+        return try {
+            val id = if (flyer.flyerId.isBlank()) {
+                firestore.collection("flyers").document().id
+            } else {
+                flyer.flyerId
+            }
+            val updated = flyer.copy(flyerId = id)
+            firestore.collection("flyers").document(id).set(updated).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun toggleFlyerStatus(flyerId: String, active: Boolean): Result<Unit> {
+        return try {
+            firestore.collection("flyers").document(flyerId)
+                .update("active", active)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteFlyer(flyerId: String): Result<Unit> {
+        return try {
+            firestore.collection("flyers").document(flyerId)
+                .delete()
+                .await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

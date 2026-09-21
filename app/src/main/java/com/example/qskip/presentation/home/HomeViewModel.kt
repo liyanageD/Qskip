@@ -2,7 +2,9 @@ package com.example.qskip.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.qskip.domain.model.Flyer
 import com.example.qskip.domain.model.Product
+import com.example.qskip.domain.repository.AdminRepository
 import com.example.qskip.domain.repository.AuthRepository
 import com.example.qskip.domain.repository.CartRepository
 import com.example.qskip.domain.repository.ProductRepository
@@ -15,6 +17,8 @@ import javax.inject.Inject
 
 data class HomeUiState(
     val recommendedProducts: List<Product> = emptyList(),
+    val activeFlyers: List<Flyer> = emptyList(),
+    val selectedCategory: String? = null,
     val budget: Double = 0.0,
     val cartTotal: Double = 0.0,
     val isLoading: Boolean = false,
@@ -26,7 +30,8 @@ data class HomeUiState(
 class HomeViewModel @Inject constructor(
     private val productRepository: ProductRepository,
     private val authRepository: AuthRepository,
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val adminRepository: AdminRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -36,6 +41,7 @@ class HomeViewModel @Inject constructor(
         checkAuthStatus()
         observeRecommendedProducts()
         loadBudgetData()
+        observeFlyers()
     }
 
     private fun loadBudgetData() {
@@ -62,10 +68,28 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             productRepository.getProductsFlow().collect { products ->
                 _uiState.value = _uiState.value.copy(
-                    recommendedProducts = products.take(10),
+                    recommendedProducts = products,
                     isLoading = false
                 )
             }
+        }
+    }
+
+    private fun observeFlyers() {
+        viewModelScope.launch {
+            adminRepository.getFlyers().collect { flyers ->
+                _uiState.value = _uiState.value.copy(
+                    activeFlyers = flyers.filter { it.active }
+                )
+            }
+        }
+    }
+
+    fun selectCategory(category: String?) {
+        if (_uiState.value.selectedCategory == category) {
+            _uiState.value = _uiState.value.copy(selectedCategory = null)
+        } else {
+            _uiState.value = _uiState.value.copy(selectedCategory = category)
         }
     }
     

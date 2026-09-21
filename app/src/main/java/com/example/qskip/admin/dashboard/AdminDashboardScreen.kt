@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,8 +35,8 @@ fun AdminDashboardScreen(
     onNavigateToOrders: () -> Unit,
     onNavigateToCustomers: () -> Unit,
     onNavigateToPromotions: () -> Unit,
-    onNavigateToReviews: () -> Unit,
     onNavigateToRewards: () -> Unit,
+    onNavigateToFlyers: () -> Unit = {},
     onAdminLogout: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: AdminDashboardViewModel = hiltViewModel()
@@ -174,7 +173,7 @@ fun AdminDashboardScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Grid Row 3: Promotions, Reviews, Rewards
+            // Grid Row 3: Promotions & Rewards
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -186,16 +185,24 @@ fun AdminDashboardScreen(
                     modifier = Modifier.weight(1f)
                 )
                 AdminNavCustomCard(
-                    title = "Reviews",
-                    icon = { Icon(Icons.Default.Star, contentDescription = "Reviews", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp)) },
-                    onClick = onNavigateToReviews,
-                    modifier = Modifier.weight(1f)
-                )
-                AdminNavCustomCard(
                     title = "Rewards",
                     icon = { LoyaltyGiftIcon(size = 32.dp) },
                     onClick = onNavigateToRewards,
                     modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Grid Row 4: Banner Flyers
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AdminNavCard(
+                    title = "Banner Flyers",
+                    icon = Icons.Default.List,
+                    onClick = onNavigateToFlyers,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
